@@ -1,0 +1,419 @@
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
+public class Game {
+    JFrame window;
+    Container con;
+    JPanel titleNamePanel, startButtonPanel, mainTextPanel, choiceButtonPanel, playerPanel;
+    JLabel titleNameLabel, varLabel, varLabelNumber;
+    Font titleFont = new Font("Times New Roman", Font.PLAIN, 90);
+    Font normalFont = new Font("Times New Roman", Font.PLAIN, 28);
+    JButton startButton, choice1, choice2, choice3, choice4;
+    JTextArea mainTextArea;
+    int Varknowledge, varWealth, Varjustice, Varlove;
+    String position;
+
+    TitleScreenHandler tsHandler = new TitleScreenHandler();
+    ChoiceHandler choiceHandler = new ChoiceHandler();
+
+    //ImageIcon logo = new ImageIcon(".//res//jackfrost.jpg");
+
+
+
+    public static void main(String[] args) {
+
+        new Game();
+    }
+
+    public Game(){
+
+        window = new JFrame();
+        window.setSize(800, 600);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.getContentPane().setBackground(Color.black);
+        window.setLayout(null);
+        //window.setIconImage(logo.getImage());
+        con = window.getContentPane();
+
+        titleNamePanel = new JPanel();
+        titleNamePanel.setBounds(100, 100, 600, 150);
+        titleNamePanel.setBackground(Color.black);
+        titleNameLabel = new JLabel("Greed");
+        titleNameLabel.setForeground(Color.white);
+        titleNameLabel.setFont(titleFont);
+
+        startButtonPanel = new JPanel();
+        startButtonPanel.setBounds(300, 400, 200, 100);
+        startButtonPanel.setBackground(Color.black);
+
+        startButton = new JButton("BEGIN");
+        startButton.setBackground(Color.black);
+        startButton.setForeground(Color.white);
+        startButton.setFont(normalFont);
+        startButton.addActionListener(tsHandler);
+        startButton.setFocusPainted(false);
+
+        titleNamePanel.add(titleNameLabel);
+        startButtonPanel.add(startButton);
+
+        con.add(titleNamePanel);
+        con.add(startButtonPanel);
+
+        window.setVisible(true);
+    }
+
+    public void createGameScreen(){
+        titleNamePanel.setVisible(false);
+        startButtonPanel.setVisible(false);
+
+        mainTextPanel = new JPanel();
+        mainTextPanel.setBounds(100, 100, 600, 250);
+        mainTextPanel.setBackground(Color.black);
+        con.add(mainTextPanel);
+        mainTextArea = new JTextArea(" ");
+        mainTextArea.setBounds(100, 100, 600, 250);
+        mainTextArea.setBackground(Color.black);
+        mainTextArea.setForeground(Color.white);
+        mainTextArea.setFont(normalFont);
+        mainTextArea.setLineWrap(true);
+        mainTextArea.setWrapStyleWord(true);
+        mainTextArea.setEditable(false);
+
+        mainTextPanel.add(mainTextArea);
+
+        choiceButtonPanel = new JPanel();
+        choiceButtonPanel.setBounds(250, 350, 300, 150);
+        choiceButtonPanel.setBackground(Color.black);
+        choiceButtonPanel.setLayout(new GridLayout(4,1));
+        con.add(choiceButtonPanel);
+        choice1 = new JButton("Choice 1");
+        choice1.setBackground(Color.black);
+        choice1.setForeground(Color.white);
+        choice1.setFont(normalFont);
+        choice1.setFocusPainted(false);
+        choice1.addActionListener(choiceHandler);
+        choice1.setActionCommand("c1");
+        choiceButtonPanel.add(choice1);
+        choice2 = new JButton("Choice 2");
+        choice2.setBackground(Color.black);
+        choice2.setForeground(Color.white);
+        choice2.setFont(normalFont);
+        choice2.setFocusPainted(false);
+        choice2.addActionListener(choiceHandler);
+        choice2.setActionCommand("c2");
+        choiceButtonPanel.add(choice2);
+        choice3 = new JButton("Choice 3");
+        choice3.setBackground(Color.black);
+        choice3.setForeground(Color.white);
+        choice3.setFont(normalFont);
+        choice3.setFocusPainted(false);
+        choice3.addActionListener(choiceHandler);
+        choice3.setActionCommand("c3");
+        choiceButtonPanel.add(choice3);
+        choice4 = new JButton("Choice 4");
+        choice4.setBackground(Color.black);
+        choice4.setForeground(Color.white);
+        choice4.setFont(normalFont);
+        choice4.setFocusPainted(false);
+        choice4.addActionListener(choiceHandler);
+        choice4.setActionCommand("c4");
+        choiceButtonPanel.add(choice4);
+
+//		choice4.setContentAreaFilled(false);  // Disable highlighting on press!!!
+
+
+        playerPanel = new JPanel();
+        playerPanel.setBounds(100, 15, 600, 50);
+        playerPanel.setBackground(Color.black);
+        playerPanel.setLayout(new GridLayout(1,4));
+        con.add(playerPanel);
+        varLabel = new JLabel("Wealth Var:");
+        varLabel.setFont(normalFont);
+        varLabel.setForeground(Color.white);
+        playerPanel.add(varLabel);
+        varLabelNumber = new JLabel();
+        varLabelNumber.setFont(normalFont);
+        varLabelNumber.setForeground(Color.white);
+        playerPanel.add(varLabelNumber);
+
+        playerSetup();
+
+    }
+    public void playerSetup(){
+
+        //Varjustice = 0;
+        //Varlove = 0;
+        //Varknowledge = 0;
+        varWealth = 0;
+        varLabelNumber.setText("" + varWealth);
+
+        forrestIntro();
+    }
+    public void forrestIntro(){
+        position = "forrestIntro";
+        mainTextArea.setText("You find yourself alone in a forrest. \n There is a fork in the road ahead of you. \n\nWhat do you do?");
+        choice1.setText("Go Left");
+        choice2.setText("Go Right");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void goLeft(){
+        position = "goLeft";
+        mainTextArea.setText("It seems there's a town ahead of you");
+        choice1.setText("Enter?");
+        choice2.setText("Go Back");
+        choice3.setText("");
+        choice4.setText("");
+    }
+    public void town(){
+        position = "town";
+        mainTextArea.setText("You enter the town. \n There seems to be a theif running away with someone's money!");
+        choice1.setText("Catch the theif?");
+        choice2.setText("Leave it be");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void theif(){
+        position = "theif";
+        mainTextArea.setText("You caught the theif! \nHe had 10 gold coins on him. ");
+        choice1.setText("Return coins to authorities");
+        choice2.setText("Keep the coin");
+        choice3.setText(" ");
+        choice4.setText("");
+    }
+
+    public void returnCoins(){
+        position = "returnCoins";
+        mainTextArea.setText("You returned the coins to the authorities.");
+        choice1.setText(">");
+        choice2.setText(" ");
+        choice3.setText(" ");
+        choice4.setText(" ");
+    }
+    public void keepCoins(){
+        position = "keepCoins";
+        mainTextArea.setText("You kept the coins");
+        varWealth = varWealth + 5;
+        varLabelNumber.setText(""+ varWealth);
+        choice1.setText(">");
+        choice2.setText(" ");
+        choice3.setText(" ");
+        choice4.setText(" ");
+    }
+
+    public void notTheif(){
+        position = "notTheif";
+        mainTextArea.setText(" You let him run past you ");
+        choice1.setText(">");
+        choice2.setText(" ");
+        choice3.setText(" ");
+        choice4.setText(" ");
+    }
+
+    public void goRight(){
+        position = "goRight";
+        mainTextArea.setText("There seems to be a cave up ahead. \nYou also pick up 3 coins on the way");
+        varWealth +=3;
+        varLabelNumber.setText(""+ varWealth);
+        choice1.setText("Go towards Cave");
+        choice2.setText("Go Back");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void cave(){
+        position = "cave";
+        mainTextArea.setText("The cave looks very dark on the inside. \nYou hear something snoring");
+        choice1.setText("Go into Cave");
+        choice2.setText("Go Back");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void dragon(){
+        position = "dragon";
+        mainTextArea.setText("You enter the cave. \nThere is a sleeping dragon in front of you");
+        choice1.setText("Kill the Dragon");
+        choice2.setText("Run away!");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void kill(){
+        position = "kill";
+        mainTextArea.setText("You kill the dragon. There is some treasure nearby");
+        choice1.setText("Take the treasure");
+        choice2.setText("Go Back");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void treasure(){
+        position = "treasure";
+        mainTextArea.setText("You took the treasure. It was cursed. \nYour hands begin to tingle.");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void curse(){
+        position = "curse";
+        mainTextArea.setText("Your hands being to melt off");
+        varWealth = varWealth + 1000;
+        varLabelNumber.setText(""+ varWealth);
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+    }
+
+    public void lose(){
+        position = "lose";
+
+        mainTextArea.setText("You got too greedy.\n\nGAME OVER");
+
+        choice1.setText("");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+        choice1.setVisible(false);
+        choice2.setVisible(false);
+        choice3.setVisible(false);
+        choice4.setVisible(false);
+    }
+    public void ending(){
+        position = "ending";
+
+        mainTextArea.setText("Gaurd: Thank you! Sleep here for the night. \nWelcome to our town!\n\nTHE END");
+
+        choice1.setText("");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+        choice1.setVisible(false);
+        choice2.setVisible(false);
+        choice3.setVisible(false);
+        choice4.setVisible(false);
+    }
+
+    public class TitleScreenHandler implements ActionListener {
+
+        public void actionPerformed(ActionEvent event){
+
+            createGameScreen();
+        }
+    }
+
+
+    public class ChoiceHandler implements ActionListener{
+
+        public void actionPerformed(ActionEvent event){
+
+            String yourChoice = event.getActionCommand();
+
+            switch(position){
+                case "forrestIntro":
+                    switch(yourChoice){
+                        case "c1": goLeft(); break;
+                        case "c2": goRight();break;
+                    }
+                    break;
+                case "goLeft":
+                    switch(yourChoice){
+                        case "c1": town(); break;
+                        case "c2": forrestIntro(); break;
+                    }
+                    break;
+                case "town":
+                    switch(yourChoice){
+                        case "c1": theif(); break;
+                        case "c2": notTheif(); break;
+                    }
+                    break;
+                case "theif":
+                    switch(yourChoice){
+                        case "c1": returnCoins(); {
+                            ending();
+                        }
+                        break;
+                        case "c2": keepCoins();
+                            if(varWealth > 10 ){
+                                lose();
+                            }
+                            else{
+                                forrestIntro();
+                            }
+                            break;
+                    }
+                    break;
+                case "notTheif":
+                    switch(yourChoice){
+                        case "c1": town(); break;
+                    }
+                    break;
+                case "goRight":
+                    switch(yourChoice){
+                        case "c1":
+                            if(varWealth > 10 ){
+                                lose();
+                            }
+                            else{
+                                cave();
+                            }
+                            break;
+                        case "c2" : forrestIntro(); break;
+                    }
+                    break;
+                case "cave" :
+                    switch(yourChoice){
+                        case "c1": dragon(); break;
+                        case "c2": forrestIntro();break;
+                    }
+                    break;
+                case "dragon" :
+                    switch(yourChoice){
+                        case "c1": kill(); break;
+                        case "c2": cave();break;
+                    }
+                    break;
+                case "kill" :
+                    switch(yourChoice){
+                        case "c1": treasure(); break;
+                        case "c2": forrestIntro();break;
+                    }
+                    break;
+                case "treasure" :
+                    switch(yourChoice) {
+                        case "c1": curse(); break;
+                    }
+                    break;
+                case "curse" :
+                    switch(yourChoice){
+                        case "c1":
+                            if(varWealth > 10 ){
+                                lose();
+                            }
+                            else{
+                                forrestIntro();
+                            }
+                            break;
+                    }
+                break;
+
+            }
+        }
+    }
+}
