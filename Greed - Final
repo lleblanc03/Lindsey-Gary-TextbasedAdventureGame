@@ -1,0 +1,4477 @@
+//Greed.java
+
+import java.awt.*;
+import javax.swing.*;
+import java.awt.event.*;
+import javax.sound.sampled.*;
+import java.io.*;
+
+
+public class Game {
+    JFrame window;
+    Container con;
+    JPanel titleNamePanel, startButtonPanel, mainTextPanel, choiceButtonPanel, playerPanel;
+    JLabel titleNameLabel;
+    Font titleFont = new Font("Times New Roman", Font.PLAIN, 90);
+    Font normalFont = new Font("Times New Roman", Font.PLAIN, 20);
+    JButton startButton, choice1, choice2, choice3, choice4;
+    JTextArea mainTextArea;
+    JButton inventoryButton;
+
+    Timer textTimer;
+    String currentText = "";  // Holds the full current text
+    int textIndex = 0;        // Current index for the animated text display
+
+    int varKnowledge, varWealth, varJustice, varLove;
+    int varForrest, varCastle, varCave, varTown;
+    int varRing, intLantern, intMedicine;
+
+    //Wealth Route variables
+    int varDiningRoomKey, varRoomPassword, varGoldenSword, varBallroomKey, varManorKey;
+
+    //Love variables
+    int varPriestessLove, varChurchLove;
+
+    //Justice vars
+    int townRespect;
+
+    //knowledge var
+    int varBook;
+    int varBeggar, varGuard, varStolen, varRingReturned, varBeggarStolen, varChildHelp, varChildHelped, varChildPunished;
+    String position;
+
+
+    TitleScreenHandler tsHandler = new TitleScreenHandler(this);
+    ChoiceHandler choiceHandler = new ChoiceHandler(this);
+
+    public static void main(String[] args) {
+        new Game();
+    }
+    JLabel imageLabel;
+
+    public void playBackgroundMusic(String filePath) {
+        try {
+            File audioFile = new File(filePath);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.loop(Clip.LOOP_CONTINUOUSLY); // Loop continuously
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public Game() {
+        window = new JFrame();
+        window.setSize(800, 600);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.getContentPane().setBackground(Color.black);
+        window.setLayout(null);
+        con = window.getContentPane();
+
+        // Add a global MouseListener to detect clicks outside buttons
+        window.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    // Double-click detected, stop the timer and display full text
+                    if (textTimer != null && textTimer.isRunning()) {
+                        textTimer.stop(); // Stop the timer if it's running
+                        mainTextArea.setText(currentText); // Immediately show full text
+                    }
+                }
+            }
+        });
+
+
+        playBackgroundMusic("C:\\Users\\linds\\Downloads\\Marked.wav"); // Update with your music file path
+
+        titleNamePanel = new JPanel();
+        titleNamePanel.setBounds(100, 100, 600, 150);
+        titleNamePanel.setBackground(Color.black);
+        titleNamePanel.setLayout(new BorderLayout());
+
+        titleNameLabel = new JLabel("GREED", SwingConstants.CENTER);
+        titleNameLabel.setForeground(Color.white);
+        titleNameLabel.setFont(titleFont);
+        titleNamePanel.add(titleNameLabel, BorderLayout.NORTH);
+
+        try {
+            ImageIcon titleImage = new ImageIcon("C:\\Users\\linds\\GreedStart.png");  // Replace with the correct path
+            imageLabel = new JLabel(titleImage);  // Initialize the image label
+            imageLabel.setBounds(100, 100, 600, 301);  // Set the initial position and size
+            con.add(imageLabel);  // Add the image to the container
+        } catch (Exception e) {
+            e.printStackTrace();  // Handle errors with image loading
+        }
+
+        startButtonPanel = new JPanel();
+        startButtonPanel.setBounds(340, 450, 200, 100);
+        startButtonPanel.setBackground(Color.black);
+        startButton = new JButton("BEGIN");
+        startButton.setBackground(Color.black);
+        startButton.setForeground(Color.white);
+        startButton.setFont(normalFont);
+        startButton.addActionListener(tsHandler);
+        startButton.setFocusPainted(false);
+
+        startButtonPanel.add(startButton);
+
+        con.add(titleNamePanel);
+        con.add(startButtonPanel);
+
+        window.addComponentListener(new ResizeListener());
+
+        window.setVisible(true);
+    }
+
+    public void updateGameImage(String location) {
+        String imagePath = "";
+
+        switch (location) {
+            case "forrestIntro":
+            case "forrestPostIntro":
+                imagePath = "C:\\Users\\linds\\greedpics\\forest.png"; // Path to forest image
+                break;
+            case "castleIntro":
+            case "castlePostIntro":
+            case "talkToGuard":
+            case "talkToGuard2":
+            case "talkToGuardNot":
+            case "talkToGuard3":
+            case "talkToGuardTriggered":
+            case "bribeGuard":
+            case "bribedGuard":
+            case "talkToGuard4":
+                imagePath = "C:\\Users\\linds\\greedpics\\manor.png"; // "C:\Users\linds\OneDrive\Pictures\castle.jpg"
+                break;
+            case "enterCastle":
+                imagePath = "C:\\Users\\linds\\greedpics\\insidemanor.png"; // "C:\Users\linds\OneDrive\Pictures\castle.jpg"
+                break;
+            case "enterDining":
+            case "eatFood":
+                imagePath = "C:\\Users\\linds\\greedpics\\eatFood.png"; // "C:\Users\linds\dining.jpg"
+                break;
+            case"townIntro":
+            case"townPostIntro":
+            case"townSquare":
+            case"talkToTownsPeople":
+            case"worriedMan":
+            case"worriedMan2":
+            case"worriedMan3":
+            case"worriedMan6":
+            case"worriedMan4":
+            case"worriedMan5":
+            case"worriedManStolen":
+            case"worriedManHelped":
+            case"child":
+            case"childStop":
+            case"childLetGo":
+            case"childWatch":
+            case"lookForChild":
+            case"childHelp":
+            case"childMedicine":
+            case"bringChildBack":
+            case"beggar":
+            case"beggarSteal":
+            case"beggarRiddle1":
+            case"beggarRiddle2":
+            case"beggarRiddle3":
+            case"beggarRiddleIncorrect":
+            case"beggarRiddleCorrect":
+            case"beggarFinished":
+                imagePath = "C:\\Users\\linds\\greedpics\\town.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"churchCheck":
+            case"churchCheck1":
+            case"churchCheckTips":
+            case"priestess":
+                imagePath = "C:\\Users\\linds\\greedpics\\church.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"caveIntro":
+            case"cavePostIntro":
+                imagePath = "C:\\Users\\linds\\greedpics\\cave.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"insideOfCave":
+            case"insideOfCave2":
+            case"startMaze":
+            case"mazeTurn1":
+            case"mazeTurn2":
+            case"mazeSuccess":
+            case"mazeFail":
+            case"getMedicine":
+            case"getMedicineChecked":
+            case"bookOfKnowledge":
+            case"hiddenPanel":
+            case"hiddenPanelFail":
+                imagePath = "C:\\Users\\linds\\greedpics\\insideCave.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"lakeIntro":
+                imagePath = "C:\\Users\\linds\\greedpics\\lake.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"continueToLake":
+            case"readStone":
+            case"burnKnowledge":
+            case"takeSword":
+            case"leaveSword":
+            case"swordActivated":
+            case"fisherman":
+            case"fishermanGreet":
+            case"fishermanGreet1":
+            case"fishermanLaugh":
+                imagePath = "C:\\Users\\linds\\greedpics\\stone.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"diningRoom":
+            case"diningRoom2":
+            case"diningRoomPlate":
+            case"diningRoomPlate2":
+            case"diningRoomKey":
+            case"diningRoomWindow":
+            case"sideDoor":
+                imagePath = "C:\\Users\\linds\\greedpics\\diningroom.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"kitchen":
+            case"inspectRecipeBook":
+            case"stealGoldCutlery":
+                imagePath = "C:\\Users\\linds\\greedpics\\kitchen.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"hallway":
+            case"leave":
+                imagePath = "C:\\Users\\linds\\greedpics\\hallway.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"continueHallway":
+            case"locked":
+                imagePath = "C:\\Users\\linds\\greedpics\\hallway2.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"mayorsBedroom":
+            case"dresserCoins":
+            case"readMayorsDiary1":
+            case"readMayorsDiary2":
+            case"readMayorsDiary3":
+            case"readMayorsDiary4":
+                imagePath = "C:\\Users\\linds\\greedpics\\bedroom.png"; // "C:\Users\linds\town.JPG"
+                break;
+            case"armory":
+            case"inspectGoldenSword":
+            case"openCase":
+            case"getGoldenSword":
+            case"notGoldenSword":
+            case"stealCoins":
+                imagePath = "C:\\Users\\linds\\greedpics\\armory.png";
+                break;
+            case"ballroom":
+            case"dragonNotWakes":
+            case"takeCoins":
+            case"takeGoldenKey2":
+                imagePath = "C:\\Users\\linds\\greedpics\\dragon.png";
+                break;
+            case"dragonWakes":
+            case"fightDragon":
+            case"run":
+            case"takeGoldenKey":
+                imagePath = "C:\\Users\\linds\\greedpics\\dragonwakes.png";
+                break;
+            case"dragonTransformation":
+            case"wealthStart":
+            case"justiceStart":
+            case"loveStart":
+            case"knowledgeStart":
+            case"badEnd":
+            case"escape":
+            case"loveRunAway":
+            case"loveTell":
+            case"loveEnd2":
+            case"loveEnd3":
+            case"End":
+            case"goodEnd":
+            case"badEndJustice":
+            case"knowledgeEnd":
+                imagePath = "C:\\Users\\linds\\greedpics\\black.jpg";
+                break;
+            case"knowledgeEnd1":
+            case"knowledgeEnd2":
+            case"knowledgeEnd3":
+            case"knowledgeEnd4":
+                imagePath = "C:\\Users\\linds\\greedpics\\cracked.jpg";
+                break;
+            case"lovechoice1":
+            case"lovechoice2":
+            case"lovechoice3":
+                imagePath = "C:\\Users\\linds\\greedpics\\lovechurch.png";
+                break;
+            case"lovechoice1priestess":
+            case"lovechoice1priestessbad":
+            case"lovechoice1priestessgood":
+            case"lovechoice2priestess":
+            case"lovechoice2priestessbad":
+            case"lovechoice2priestessgood":
+            case"lovechoice3priestess":
+            case"lovechoice3priestessbad":
+            case"lovechoice3priestessgood":
+                imagePath = "C:\\Users\\linds\\greedpics\\priestess.png";
+                break;
+            case"lovechoice1church":
+            case"lovechoice1churchgood":
+            case"lovechoice1churchbad":
+            case"lovechoice2church":
+            case"lovechoice2churchgood":
+            case"lovechoice2churchbad":
+            case"lovechoice3church":
+            case"lovechoice3churchgood":
+            case"lovechoice3churchbad":
+                imagePath = "C:\\Users\\linds\\greedpics\\worshippers.png";
+                break;
+            case"lovenight":
+            case"loveEnd1":
+                imagePath = "C:\\Users\\linds\\greedpics\\loveEnd.png";
+                break;
+            case"startStory":
+            case"case1":
+            case"case1punish":
+            case"case1forgive":
+            case"case1neutral":
+            case"case2":
+            case"case2punish":
+            case"case2forgive":
+            case"case2fine":
+            case"case3":
+            case"case3punish":
+            case"case3forgive":
+            case"proceedToNextCase":
+            case"evaluateEnding":
+                imagePath = "C:\\Users\\linds\\greedpics\\justice.png";
+                break;
+            default:
+                imagePath = "C:\\Users\\linds\\greedpics\\forest.png"; // Fallback/default image
+                break;
+        }
+
+        // Update the image
+        try {
+            ImageIcon gameImage = new ImageIcon(imagePath);
+            gameImageLabel.setIcon(gameImage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private JLabel gameImageLabel;
+
+    public void createGameScreen() {
+
+        inventoryButton = new JButton("Inventory");
+        inventoryButton.setFont(normalFont);
+        inventoryButton.setBackground(Color.black);
+        inventoryButton.setForeground(Color.white);
+        inventoryButton.setFocusPainted(false);
+        inventoryButton.addActionListener(new InventoryButtonHandler());
+        con.add(inventoryButton);
+
+        // Position the button in the lower-right corner
+        inventoryButton.setBounds(window.getWidth() - 150, window.getHeight() - 100, 120, 40); // Adjust size and position as needed
+
+
+        titleNamePanel.setVisible(false);
+        startButtonPanel.setVisible(false);
+
+        mainTextPanel = new JPanel();
+        mainTextPanel.setBounds(120, 240, 600, 250);
+        mainTextPanel.setOpaque(false);
+        con.add(mainTextPanel);
+
+        mainTextArea = new JTextArea("");
+        mainTextArea.setBounds(180, 300, 550, 250);
+        mainTextArea.setBackground(new Color(0, 0, 0, 0));
+        mainTextArea.setForeground(Color.white);
+        Font smallFont = new Font("Times New Roman", Font.PLAIN, 12);
+        mainTextArea.setFont(smallFont);
+        mainTextArea.setLineWrap(true);
+        mainTextArea.setWrapStyleWord(true);
+        mainTextArea.setEditable(false);
+        mainTextArea.setOpaque(false);
+
+        mainTextPanel.add(mainTextArea);
+
+        choiceButtonPanel = new JPanel();
+        choiceButtonPanel.setBounds(100, 350, 600, 100);
+        choiceButtonPanel.setBackground(Color.black);
+        choiceButtonPanel.setLayout(new GridLayout(2, 2, 10, 10));
+        con.add(choiceButtonPanel);
+
+        choice1 = new JButton("Choice 1");
+        choice1.setBackground(Color.black);
+        choice1.setForeground(Color.white);
+        choice1.setFont(normalFont);
+        choice1.setFocusPainted(false);
+        choice1.addActionListener(choiceHandler);
+        choice1.setActionCommand("c1");
+        choiceButtonPanel.add(choice1);
+
+        choice2 = new JButton("Choice 2");
+        choice2.setBackground(Color.black);
+        choice2.setForeground(Color.white);
+        choice2.setFont(normalFont);
+        choice2.setFocusPainted(false);
+        choice2.addActionListener(choiceHandler);
+        choice2.setActionCommand("c2");
+        choiceButtonPanel.add(choice2);
+
+        choice3 = new JButton("Choice 3");
+        choice3.setBackground(Color.black);
+        choice3.setForeground(Color.white);
+        choice3.setFont(normalFont);
+        choice3.setFocusPainted(false);
+        choice3.addActionListener(choiceHandler);
+        choice3.setActionCommand("c3");
+        choiceButtonPanel.add(choice3);
+
+        choice4 = new JButton("Choice 4");
+        choice4.setBackground(Color.black);
+        choice4.setForeground(Color.white);
+        choice4.setFont(normalFont);
+        choice4.setFocusPainted(false);
+        choice4.addActionListener(choiceHandler);
+        choice4.setActionCommand("c4");
+        choiceButtonPanel.add(choice4);
+
+        try {
+            ImageIcon gameImage = new ImageIcon("C:\\Users\\linds\\greedpics\\forest.png"); // Replace with your image path
+            gameImageLabel = new JLabel(gameImage); // Store reference to the game image label
+            gameImageLabel.setBounds(100, 20, 620, 301); // Initial size, can be adjusted later
+            con.add(gameImageLabel);
+        } catch (Exception e) {
+            e.printStackTrace(); // To catch any potential errors with the image loading
+        }
+
+        playerSetup();
+    }
+
+    public void showInventory() {
+        StringBuilder inventoryList = new StringBuilder("Items held:\n");
+
+        if (varRing == 1) {
+            inventoryList.append("- A Ring\n");
+        }
+        if (varBook == 1) {
+            inventoryList.append("- The Book of Knowledge\n");
+        }
+        if (intLantern == 1) {
+            inventoryList.append("- A Lantern\n");
+        }
+        if (intMedicine == 1) {
+            inventoryList.append("- A Vile of Medicine\n");
+        }
+        if (varDiningRoomKey == 1) {
+            inventoryList.append("- Dining Room Key\n");
+        }
+        if (varGoldenSword == 1) {
+            inventoryList.append("- A Golden Sword\n");
+        }
+        if (varBallroomKey == 1) {
+            inventoryList.append("- Ballroom Key\n");
+        }
+        if (varManorKey == 1) {
+            inventoryList.append("- Manor Key\n");
+        }
+
+
+        inventoryList.append("\nWealth: ").append(varWealth + " gold coins");
+
+        JOptionPane.showMessageDialog(window, inventoryList.toString(), "Inventory", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
+    class InventoryButtonHandler implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            showInventory();
+        }
+    }
+
+    public void playerSetup() {
+        //stats
+        varWealth = 0;
+        varKnowledge = 0;
+        varLove = 0;
+        varJustice = 0;
+        varGuard = 0;
+        //varLabelNumber.setText("" + varWealth);
+
+        //Places
+        varForrest = 0;
+        varCastle = 0;
+        varCave = 0;
+        varTown = 0;
+
+        varStolen = 0;
+        varRingReturned = 0;
+        varRing = 0;
+        intLantern = 0;
+        intMedicine = 0;
+        varDiningRoomKey = 0;
+        varRoomPassword = 0;
+        varGoldenSword = 0;
+        varBallroomKey = 0;
+        varManorKey = 0;
+        varPriestessLove = 0;
+        varChurchLove = 0;
+        townRespect = 0;
+
+        //child variables
+        varChildHelp = 0;
+        varChildHelped = 0;
+        varChildPunished = 0;
+
+        //beggar variables
+        varBeggar = 0;
+        varBeggarStolen = 0;
+
+        //other vars
+        varBook = 0;
+        forrestIntro();
+    }
+
+
+    private class ResizeListener extends ComponentAdapter {
+        @Override
+        public void componentResized(ComponentEvent e) {
+            int width = window.getWidth();
+            int height = window.getHeight();
+
+            // Title screen elements
+            titleNamePanel.setBounds(width / 8, height / 8, width * 3 / 4, height / 4);
+            titleNameLabel.setFont(new Font("Times New Roman", Font.PLAIN, width / 10));
+            startButtonPanel.setBounds(width / 3, height * 2 / 3, width / 4, height / 6);
+            startButton.setFont(new Font("Times New Roman", Font.PLAIN, width / 40));
+
+            // Game screen elements
+            if (mainTextPanel != null && mainTextArea != null) {
+                mainTextPanel.setBounds(width / 8, (int) (height / 2.3), width * 3 / 4, (int)(height / 3));
+                mainTextArea.setFont(new Font("Times New Roman", Font.PLAIN, width / 70));
+                mainTextArea.setBounds(0, 0, mainTextPanel.getWidth(), mainTextPanel.getHeight());
+            }
+
+            if (choiceButtonPanel != null) {
+                choiceButtonPanel.setBounds(width / 8, height * 5 / 8, width * 3 / 4, height / 6);
+                choice1.setFont(new Font("Times New Roman", Font.PLAIN, width / 50));
+                choice2.setFont(new Font("Times New Roman", Font.PLAIN, width / 50));
+                choice3.setFont(new Font("Times New Roman", Font.PLAIN, width / 50));
+                choice4.setFont(new Font("Times New Roman", Font.PLAIN, width / 50));
+            }
+
+            if (playerPanel != null) {
+                playerPanel.setBounds(width / 8, height / 20, width * 3 / 4, height / 12);
+            }
+
+            // Image scaling
+            if (imageLabel != null) {
+                int imageWidth = width * 2 / 3;  // Set the width to two-thirds of the window width
+                int imageHeight = height * 2 / 3;  // Set the height to two-thirds of the window height
+
+                // Adjust horizontal position to move it slightly to the left
+                int xPosition = (width - imageWidth) / 2 - 20;  // Shift 20 pixels to the left
+                int yPosition = (height - imageHeight) / 5;  // Keep the vertical position as is
+
+                imageLabel.setBounds(xPosition, yPosition, imageWidth, imageHeight);
+            }
+
+            // Resize the game image
+            if (gameImageLabel != null) {
+                gameImageLabel.setBounds(width / 8, height / 5, width * 3 / 4, height / 3); // Example size, adjust as needed
+            }
+
+            if (inventoryButton != null) {
+                inventoryButton.setBounds(window.getWidth() - 150, window.getHeight() - 100, 120, 40);
+            }
+        }
+    }
+
+
+    private void updateChoiceLayout() {
+        choiceButtonPanel.removeAll(); // Clear the panel before re-adding buttons
+
+        JButton[] choices = {choice1, choice2, choice3, choice4};
+        int visibleCount = 0;
+
+        for (JButton button : choices) {
+            if (!button.getText().isEmpty()) {
+                choiceButtonPanel.add(button);
+                visibleCount++;
+
+                // Use HTML to wrap text and set a larger font size
+                button.setText("<html><div style='text-align: center; width: 150px; font-size: 12px;'>" + button.getText() + "</div></html>");
+
+                // Dynamically adjust button height based on its content
+                button.setPreferredSize(new Dimension(150, button.getPreferredSize().height));
+            }
+        }
+
+        // Adjust layout depending on the number of visible buttons
+        if (visibleCount == 1) {
+            choiceButtonPanel.setLayout(new GridLayout(1, 1, 10, 10));
+        } else if (visibleCount == 2) {
+            choiceButtonPanel.setLayout(new GridLayout(1, 2, 10, 10));
+        } else if (visibleCount == 3) {
+            choiceButtonPanel.setLayout(new GridLayout(2, 2, 10, 10));
+        } else {
+            choiceButtonPanel.setLayout(new GridLayout(2, 2, 10, 10));
+        }
+
+        choiceButtonPanel.revalidate(); // Refresh layout
+        choiceButtonPanel.repaint();
+    }
+
+    public void displayTextWithAnimation(String text) {
+        // If the text is already being displayed, we stop the timer and don't restart
+        if (textTimer != null && textTimer.isRunning()) {
+            textTimer.stop();  // Stop the current timer if it's already running
+        }
+
+        currentText = text;  // Store the full text to display
+        mainTextArea.setText("");  // Clear any previous text
+        textIndex = 0;  // Reset the text index to the start
+
+        // Create a new timer to animate the text
+        textTimer = new Timer(50, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (textIndex < currentText.length()) {
+                    mainTextArea.append(String.valueOf(currentText.charAt(textIndex++)));
+                } else {
+                    textTimer.stop(); // Stop once the full text is displayed
+                }
+            }
+        });
+
+        textTimer.start();  // Start the timer to display the text
+    }
+
+    public void checkKnowledgeCondition() {
+        if (varKnowledge > 20 && varBook == 1) {
+            knowledgeStart();
+        }
+    }
+
+
+
+    public void forrestIntro(){
+        position = "forrestIntro";
+        String text = ("You awaken in the heart of a dense forest, the air thick with the scent of earth and damp leaves. You have no memory of who you are or how you got here. As you stand, you notice four distinct paths stretching out before you, each vanishing into the mysterious depths of the woods. The air hums with the unknown, and every path seems to whisper a different promise. Which one will you choose? ");
+        displayTextWithAnimation(text);
+        choice1.setText("Go North");
+        choice2.setText("Go East");
+        choice3.setText("Go South");
+        choice4.setText("Go West");
+        varForrest += 1;
+
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void forrestPostIntro(){
+        position = "forrestPostIntro";
+        String text = ("You've returned to you're place of origin, the leave crunch familiarly under your feet. The same options lay out in front of you just as they did before. The question once more arises again. Which one will you choose?");
+        displayTextWithAnimation(text);
+        choice1.setText("Go North");
+        choice2.setText("Go East");
+        choice3.setText("Go South");
+        choice4.setText("Go West");
+
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+
+    public void castleIntro(){
+        position = "castleIntro";
+        String text = ("As you approach, the castle looms ahead, its walls smooth and well-kept,The spires are sharp and clean. The structure seems more like a fortress than a relic, with blue banners fluttering gently in the breeze. At the entrance, a lone guard stands watch, his posture rigid, yet there's an unmistakable irritation in the way he shifts his weight. His eyes dart around, as if searching for something—or someone—to vent his frustration on. He hasn't noticed you yet, but it’s clear he’s not in the mood for small talk. What will you do?");
+        choice1.setText("Talk to the Guard");
+        choice2.setText("Go East");
+        choice3.setText("Go South");
+        choice4.setText("Go West");
+        varCastle += 1;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void castlePostIntro(){
+        position = "castlePostIntro";
+        String text = ("As the castle comes into view, just as you remember it—walls smooth and pristine, spires sharp against the sky. And there, just as before, is the guard. His irritation is palpable, a scowl etched across his face as he shifts his weight, glancing around with that same restless energy. You've seen this scene play out once, maybe more,. This time, though, you know what to expect. ");
+        choice1.setText("Talk to the Guard");
+        choice2.setText("Go East");
+        choice3.setText("Go South");
+        choice4.setText("Go West");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void talkToGuard(){
+
+        position = "talkToGuard";
+        String text = ("The guard’s eyes narrow as you approach, and he raises a hand to stop you before you can get too close. “No visitors,” he grumbles, his voice low and firm. “Lord’s orders.” There's a sharp edge to his tone, as if he's had to say this a hundred times today, and he’s growing tired of repeating himself.");
+        choice1.setText("Is there anything I could do to go inside?");
+        choice2.setText("Let me through, or you’ll regret it!");
+        choice3.setText("Leave");
+        if (varBeggar == 1) {
+            choice4.setText("When was the last time you even saw the Lord?");
+        } else {
+            choice4.setText("");
+        }
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void talkToGuard2(){
+        position = "talkToGuard2";
+        String text = ("He leans in slightly, lowering his voice as if sharing a secret. “The lord doesn’t want visitors,” he repeats, but there’s a subtle shift in his tone, a hint of possibility. “But… rules can be flexible, for the right price.” He glances around, making sure no one else is nearby, then looks back at you, eyes gleaming with a quiet, greedy anticipation. It’s clear that a few coins might loosen the gate’s stubborn lock. What’s your move?");
+        choice1.setText("That's bribery!");
+        choice2.setText("Slip the coin into the guard's palm");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void talkToGuardNot(){
+        position = "talkToGuardNot";
+        String text = (" “That's not nearly enough! Do you take me for a fool? Get out of here before I call for the other men.”");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void talkToGuard3(){
+        position = "talkToGuard3";
+        String text = (" The guard’s eyes widen slightly, caught off guard by your sudden boldness. He straightens, instinctively placing a hand on the hilt of his sword. “You think you can intimidate me?” he scoffs, Just try it and see what comes of you.");
+        choice1.setText("Apologize and Leave");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void talkToGuardTriggered(){
+        position = "talkToGuardTriggered";
+        String text = ("His expression shifts from irritation to a mix of surprise and caution. “I haven’t seen him for months,” he replies, his voice low. “No one has. The last time I spoke directly with him was three weeks ago, when I delivered the town's taxes.” He hesitates, glancing around as if to ensure no one is eavesdropping. “He seemed… different. His voice was raspy, and I swear I felt heat from his breath as he spoke to me. Now leave if you don't have any business... or coin”");
+        choice1.setText("Bribe Guard");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+        varKnowledge = varKnowledge + 1;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void bribeGuard(){
+        position = "bribeGuard";
+        String text = ("The guard’s eyes gleam with greed as he takes a step closer, his irritation melting away in the face of opportunity. “Fine,” he mutters, snatching the coins from your palm. A sly grin spreads across his face as he gestures toward the gate. “You’ve got yourself a pass. Just don’t let him catch you snooping around. The lord doesn't take thievery lightly. ”" );
+        choice1.setText("Enter the Castle");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+        varWealth = varWealth - 5;
+        varJustice = varJustice - 1;
+        varGuard += 1;
+        varLove = varLove + 1;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void bribedGuard(){
+        position = "bribedGuard";
+        String text = ("“You’ve got yourself a pass. Just don’t let him catch you snooping around. The lord doesn't take thievery lightly. ” You can now enter the castle." );
+        choice1.setText("Enter the Castle");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void talkToGuard4(){
+        position = "talkToGuard4";
+        String text = ("Your refusal catches him off guard, and a flash of frustration crosses his face. His annoyance simmers just below the surface, and he gestures angrily toward the gate. “If you’re not willing to play along, then turn around and leave! We don’t need anyone causing trouble in this town!” The weight of his anger lingers, and the atmosphere shifts, thick with tension.");
+        choice1.setText("Apologize and Leave");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varJustice = varJustice + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void enterCastle(){
+        position = "enterCastle";
+        String text = ("You step into the castle, and an unsettling darkness envelops you. The air is heavy and stagnant, the only sound your footsteps echoing softly against the cold stone floor. Everything is coated in a grimy layer of soo, as if a fire just lightly touched every surface of the stone around you. Just as you start to feel the weight of isolation settle in, a savory aroma wafts toward you from the only entrance to your left. " );
+        choice1.setText("Follow the smell");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+    public void enterDining(){
+        position = "enterDining";
+        String text = ("As you walk into the dining room, your senses are immediately assaulted by an extravagant sight.");
+        choice1.setText("Indulge");
+        choice2.setText("Get out of here");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void eatFood(){
+        position = "eatFood";
+        String text = ("You dive into the feast, You devour plate after plate, your stomach stretching and hardening until it feels uncomfortably tight. Suddenly, a thunderous bang reverberates through the castle, shaking the very walls. Darkness swirls around you, creeping in like a shadow. The world fading to black." );
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void diningRoom() {
+        position = "diningRoom";
+        String text = ("You wake up with a start, seated at the head of a grand dining table. The room is dimly lit, with an air of opulence that reeks of both wealth and mystery. A gilded plate sits before you, its intricate designs catching the flickering light of a nearby candelabra. The room is eerily silent except for the faint ticking of a grandfather clock in the corner. What will you do?");
+
+        choice1.setText("Steal a gilded plate");
+        choice2.setText("Look out the window");
+        choice3.setText("Check the side door");
+        choice4.setText("Leave to hallway");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void diningRoom2() {
+        position = "diningRoom2";
+        String text = (" The room is dimly lit, with an air of opulence that reeks of both wealth and mystery. A gilded plate sits before you, its intricate designs catching the flickering light of a nearby candelabra. The room is eerily silent except for the faint ticking of a grandfather clock in the corner. What will you do?");
+
+        choice1.setText("Steal a gilded plate");
+        choice2.setText("Look out the window");
+        choice3.setText("Check the side door");
+        choice4.setText("Leave to hallway");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void diningRoomPlate() {
+        position = "diningRoomPlate";
+        String text = ("You take the gilded plate and find a small key labeled 'Kitchen' underneath.");
+
+        choice1.setText("Take the key");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void diningRoomPlate2() {
+        position = "diningRoomPlate2";
+        String text = ("You take the gilded plate, there was no key this time");
+
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varWealth = varWealth + 2;
+        checkKnowledgeCondition();
+    }
+
+    public void diningRoomKey() {
+        position = "diningRoomKey";
+        String text = ("You take the key");
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varDiningRoomKey = varDiningRoomKey + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void diningRoomWindow() {
+        position = "diningRoomWindow";
+        String text = ("You peer out the window. The grounds are shrouded in mist, and the twisted shapes of leafless trees cast eerie shadows. In the hours the past, night has fallen.");
+
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void sideDoor() {
+        position = "sideDoor";
+        String text = ("You try the side door but it doesn't give. It seems locked.");
+
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void kitchen() {
+        position = "kitchen";
+        String text = ("You step into a grand, yet oddly cold kitchen. The stone floor is covered with a fine layer of dust, suggesting it hasn’t been used in a while. Copper pots and pans hang neatly along the walls, and in the center of the room sits a large wooden table. A tattered recipe book lies open, its yellowed pages filled with handwritten notes. The air smells faintly of flour and old spices. What will you do?");
+
+        choice1.setText("Inspect the recipe book");
+        choice2.setText("Steal Cutlery");
+        choice3.setText("Return to the hallway");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void inspectRecipeBook() {
+        position = "inspectRecipeBook";
+        String text = ("You open the recipe book. The pages are filled with cryptic instructions and strange symbols. One recipe catches your eye: 'The Perfect Pie.' It reads:\n" +
+                "Grease the pan, don’t be shy, Roll the dough, don’t let it dry.\n" +
+                "Eggs and butter, mix them in, Eagerly stir, don’t let it thin.\n" +
+                "Dump it in the oven, let it bake.");
+
+        choice1.setText("Return to the kitchen");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void stealGoldCutlery() {
+        position = "stealGoldCutlery";
+        String text = ("You glance around the kitchen, and your eyes fall on a set of shimmering gold cutlery displayed on a nearby shelf. The temptation is strong. You carefully lift the utensils, ensuring no one hears your movements. As you pocket the gold, you feel a sense of guilt, but also a rush of excitement. You've just stolen something valuable.");
+
+        choice1.setText("Return to the kitchen");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varWealth = varWealth + 1;
+        checkKnowledgeCondition();
+    }
+
+
+    public void hallway() {
+        position = "hallway";
+        String text = ("You step into a dimly lit hallway. The air is cooler here, and the floorboards creak beneath your feet. The hallway stretches in both directions.");
+
+        choice1.setText("Go Left");
+        choice2.setText("Go Forward");
+        choice3.setText("Go Right");
+        choice4.setText("Leave");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void leave() {
+        position = "leave";
+        String text = ("You try to leave out the front door of the manor but it seems blocked by something. Maybe it's locked? Either way it seems you are not getting out of here any time soon");
+
+        choice1.setText("Go Back");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void continueHallway() {
+        position = "continueHallway";
+        String text = ("You step into the same dimly lit hallway. There are three doors left to explore");
+
+        choice1.setText("Go Left");
+        choice2.setText("Go Back");
+        choice3.setText("Go Right");
+        choice4.setText("Try the Ballroom door");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void mayorsBedroom() {
+        position = "mayorsBedroom";
+        String text = ("The mayor’s bedroom is richly furnished but bleak and unwelcoming. The bed is neatly made, though there’s an unsettling atmosphere that fills the room. In the corner of the room, you find a leather-bound book, its cover worn with age. It appears to be the mayor's diary. It seems to be the only thing here of any importance");
+        choice1.setText("Read the mayor's diary");
+        choice2.setText("Take a few coins from the dresser");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void dresserCoins() {
+        position = "dresserCoins";
+        String text = ("You take a couple coins from the dresser");
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varWealth = varWealth + 3;
+        checkKnowledgeCondition();
+    }
+
+    public void readMayorsDiary() {
+        position = "readMayorsDiary";
+        String text = ("I know the townsfolk are hiding their wages. The piles seemed low today, will count tomorrow. \nIf they think they can pull one over on me they are sadly mistaken. \nEnd Passage");
+
+        choice1.setText("Continue reading");
+        choice2.setText("Stop reading and leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void readMayorsDiary2() {
+        position = "readMayorsDiary2";
+        String text = ("I counted and it does seem that we are short. \nI bet it's that damned church. Always hiding in their fancy building. Don't they know that I am the one who runs this place. I tell them what to do. \nLately I haven't been as hungry as usual, not for food at least. \nEnd Passage");
+
+        choice1.setText("Continue reading");
+        choice2.setText("Stop reading and leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 2;
+        checkKnowledgeCondition();
+    }
+
+    public void readMayorsDiary3() {
+        position = "readMayorsDiary3";
+        String text = ("I don't know what's happening to me. My skin feels itchy, scabby. \n I went to the church but they wouldn't help me, bastards. \n The only thing that makes me feel better is my coins, my things. I will bring them to the ballroom and lay with them tonight. \nThat was the end of all passages.");
+
+        choice1.setText("Look at the back page");
+        choice2.setText("Stop reading and Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 2;
+        checkKnowledgeCondition();
+    }
+
+    public void readMayorsDiary4() {
+        position = "readMayorsDiary4";
+        String text = ("There is a sequence of numbers on the last page. \n011200");
+
+        choice1.setText("Walk away");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void locked() {
+        position = "locked";
+        String text = ("It's locked");
+
+        choice1.setText("Go Back");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void armory() {
+        position = "armory";
+        String text = ("The smell of metal immediately greets you. It's an armory. Along the walls, weapons and armor are neatly arranged. A golden sword is encased in glass, its blade gleaming brilliantly. There's a coin collection on a pedestal, with shiny coins stacked neatly. A set of silver armor sits in the corner, catching the light. What will you do?");
+
+        choice1.setText("Inspect the golden sword");
+        choice2.setText("Steal the coins from the coin collection");
+        choice3.setText("Leave to the hallway");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void inspectGoldenSword() {
+        position = "inspectGoldenSword";
+        String text = ("The golden sword is beautiful, its blade gleaming with an otherworldly shine. It's encased in glass, but there's no key to open it. You remember hearing something about a passcode for unlocking the glass... perhaps the mayor's bedroom holds the key.");
+
+        choice1.setText("Try to open the case");
+        choice2.setText("Return to the hallway");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void openCase() {
+        position = "openCase";
+        String text = ("The golden sword is beautiful, its blade gleaming with an otherworldly shine. It's encased in glass, but there's no key to open it. You remember hearing something about a passcode for unlocking the glass... perhaps the mayor's bedroom holds the key.");
+        displayTextWithAnimation(text);
+        String userAnswer = JOptionPane.showInputDialog("Enter a 6-digit Code:");
+
+        // Use a switch statement to evaluate the answer
+        switch (userAnswer.toLowerCase()) {
+            case "011200":
+                getGoldenSword();
+                break;
+            default:
+                notGoldenSword();
+                break;
+        }
+
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void getGoldenSword() {
+        position = "getGoldenSword";
+        String text = ("You open the case and take the golden sword. It shimmers in your hand. It makes you feel powerful. A key labeled 'Ballroom' drops from the cabinet, you pick it up. \n Your skin feels a bit itchy.");
+
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varGoldenSword = varGoldenSword + 1;
+        varBallroomKey = varBallroomKey + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void notGoldenSword() {
+        position = "notGoldenSword";
+        String text = ("That passcode didn't seem to work.");
+
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void stealCoins() {
+        position = "stealCoins";
+        String text = ("You carefully glance around, ensuring no one is watching, and you begin to pocket the coins from the collection. As you do, you feel a rush of excitement and guilt. You’ve stolen a small fortune, but the consequences may follow.");
+
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varWealth = varWealth + 5;
+        checkKnowledgeCondition();
+    }
+
+    public void ballroom() {
+        position = "ballroom";
+        String text = ("The ballroom looks grand, its high ceilings and marble floors a testament to its former glory. At the center, atop a massive pile of glittering gold, lies an enormous dragon, its scales shimmering with an otherworldly light. It sleeps, its breaths slow and heavy. The air is thick with tension.");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void dragonWakes() {
+        position = "dragonWakes";
+        String text = ("The dragon’s eyes snap open, locking onto you. You’ve disturbed its slumber and it is not happy.");
+        choice1.setText("Run");
+        if (varGoldenSword == 1) {
+            choice2.setText("Kill the Dragon");
+        } else {
+            choice2.setText("");
+        }
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void dragonNotWakes() {
+        position = "dragonNotWakes";
+        String text = ("The dragon remains asleep. Gold and a key lie scattered across the ground.");
+        choice1.setText("Take some coins");
+        choice2.setText("Take the golden key");
+        choice3.setText("Leave quietly");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void fightDragon() {
+        position = "fightDragon";
+        String text = "With the Golden Sword in hand, you charge at the dragon. After a fierce battle, you deliver a final, fatal blow. The dragon lets out a deafening roar before collapsing onto its treasure. You stand victorious.";
+        choice1.setText("Take the golden key");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void run() {
+        position = "run";
+        String text = "The beast unleashes a torrent of flames, and you are consumed by fire.";
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void dragonTransformation() {
+        position = "dragonTransformation";
+        String text = ("As you reach down to claim the golden key, a sharp pain shoots through your body. Your skin begins to split, scales pushing through. Your bones twist and stretch, wings bursting painfully from your back. You roar in agony as your transformation completes. \nYou should have never been so greedy.");
+
+        choice1.setText("Accept your fate");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void takeCoins() {
+        position = "takeCoins";
+        String text = ("You cautiously gather some coins. As the wealth piles up in your pocket, you feel the room’s tension shift.");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varWealth = varWealth + 3;
+        checkKnowledgeCondition();
+    }
+
+    public void takeGoldenKey() {
+        position = "takeGoldenKey";
+
+        String text = ("You carefully pick up the golden key. The dragon remains undisturbed.");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varManorKey = varManorKey + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void takeGoldenKey2() {
+        position = "takeGoldenKey2";
+
+        String text = ("You carefully pick up the golden key. The dragon remains undisturbed.");
+        choice1.setText("Leave quietly");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varManorKey = varManorKey + 1;
+        checkKnowledgeCondition();
+    }
+
+        public void townIntro(){
+        position = "townIntro";
+        String text = ("As you make your way north, a charming town comes into view, its gothic architecture towering against the sky. The buildings are adorned with elaborate carvings and pointed arches, creating an almost enchanting atmosphere. Roofs of deep crimson stand out against the gray stone, giving the town a unique character. ");
+        choice1.setText("Head into town");
+        choice2.setText("Go East");
+        choice3.setText("Go South");
+        choice4.setText("Go West");
+        varTown += 1;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void townPostIntro(){
+        position = "townPostIntro";
+        String text = ("The familiar sight of the charming town comes into view. ");
+        choice1.setText("Head into town");
+        choice2.setText("Go East");
+        choice3.setText("Go South");
+        choice4.setText("Go North");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void townSquare(){
+        position = "townSquare";
+        String text = ("The square bustles with energy, filled with townsfolk moving about, engaged in cheerful conversation. There are a couple towns people around that you can talk too.  In the center of the  town square looms a grand church, towering spires stretch toward the sky, while intricate stonework decorates the façade. Dominating the center of the church is a stunning stained glass window featuring a massive blue butterfly, its wings spread wide in a kaleidoscope of colors. ");
+        choice1.setText("Go Into the Church");
+        choice2.setText("Talk to the Townspeople");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void talkToTownsPeople(){
+        position = "talkToTownsPeople";
+        String text = ("You approach the townspeople, taking in their varied expressions. A man nearby paces nervously, searching his pockets for something, his brow furrowed with worry. Not far from him, a small child shrouded in dirty warn out clothing, with darting, shifty eyes lingers by a bread stall, clearly eyeing a loaf with a longing gaze, glancing around as if waiting for the right moment to grab it. Outside the church, a beggar sits cross-legged, wrapped in a worn cloak, his head bowed, occasionally murmuring to himself.  Who will you speak to first?");
+        choice1.setText("Talk to the worried man");
+        choice2.setText("Talk to the child");
+        choice3.setText("Talk to the beggar");
+        choice4.setText("Leave");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void worriedMan(){
+        position = "worriedMan";
+        String text = ("You approach the worried man, and he glances at you with a flicker of hope in his eyes, clearly relieved to have someone to talk to. “It’s… my wedding ring,” he mutters, running a hand through his hair anxiously. “I lost it near the lake just outside town. I was skipping stones, and… it slipped right off my finger. I’ve looked all over, but it’s gone.” He sighs heavily, casting a longing glance toward the lake’s direction. “If you could help me find it, I’d be grateful,” he adds, his voice almost pleading.");
+        choice1.setText("I will help.");
+        choice2.setText("And what’s in it for me if I find it?");
+        choice3.setText("Leave");
+        if (varRing == 1) {
+            choice4.setText("Show him the ring");
+        } else {
+            choice4.setText("");
+        }
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void worriedMan2(){
+        position = "worriedMan2";
+        String text = (" “I don’t have much,” he admits, “but I can spare some coin if you help me. It’s all I’ve got to offer.” His eyes hold a mix of desperation and hope, clearly willing to part with whatever he can for the ring’s safe return. ");
+        choice1.setText("Okay I'll help");
+        choice2.setText("Leave");
+        if (varRing == 1) {
+            choice3.setText("Show him the ring");
+        } else {
+            choice3.setText("");
+        }
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void worriedMan6(){
+        position = "worriedMan6";
+        String text = (" “Thank you so much! I think I might have dropped it near the lake last night. ” ");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varJustice = varJustice + 1;
+        varLove = varLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void worriedMan3(){
+        position = "worriedMan3";
+        String text = (" My Ring! Oh please give it to me, I'll do anything!");
+        choice1.setText("Give me Coin");
+        choice2.setText("Give him the ring");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void worriedMan4(){
+        position = "worriedMan4";
+        String text = ("Okay! Okay, here's all I have, the man hands over one coin and greedily takes the ring. It shimmers in his hands.");
+        choice1.setText("Push the man over and take the ring, and coin");
+        choice2.setText("Take the coin");
+        choice3.setText("Leave without taking anything");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void worriedMan5(){
+        position = "worriedMan5";
+        String text = ("'Hey! Someone stop him!' But no one even looked over at the two of you, in fact, a few even turned their heads to look away.");
+        choice1.setText("Run away");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+        varStolen = varStolen + 1;
+        varWealth = varWealth + 2;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void worriedManStolen(){
+        position = "worriedManStolen";
+        String text = ("The man is gone now, surely disheartened over losing his ring and coins, the square feels a little more quiet. ");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void worriedManHelped(){
+        position = "worriedManHelped";
+        String text = ("'Thank you, thank you so much,' The man holds the ring close to his chest.");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+        varRingReturned = varRingReturned + 1;
+        varRing = varRing - 1;
+        varWealth = varWealth + 2;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varJustice = varJustice + 1;
+        varLove = varLove + 2;
+        checkKnowledgeCondition();
+    }
+
+    public void child(){
+        position = "child";
+        String text = ("You approach the child quietly, watching as his hand inches toward a loaf of bread, his eyes darting around with nervous anticipation. His clothes are tattered, his face smudged with dirt, and there's a desperation in his gaze as he reaches for the bread, clearly torn between fear and hunger. You think you're close enough to stop him before he makes his move.");
+        choice1.setText(" Intervene ");
+        choice2.setText(" Watch what unfolds ");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void childStop(){
+        position = "childStop";
+        String text = (" You reach out and gently place a hand on the child’s shoulder just as he’s about to grab the bread. He startles, his eyes widening as he looks up at you, clearly frightened. ");
+        choice1.setText(" You weren't going to steal that bread were you?");
+        choice2.setText(" Can I help you? ");
+        choice3.setText(" Get out of here, before I catch you again");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varJustice = varJustice + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void childLetGo(){
+        position = "childLetGo";
+        String text = (" You let the small boy go, frightened, he runs off and hides. The bread seller offers you a nod of gratitude and a faint smile. “Thank you,” he says. “Times are hard, but we still have to keep order. Here,” he adds, handing you a few coins for your help.  ");
+        choice1.setText("Thank the Baker and Leave");
+        choice2.setText("Go after the child");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void childWatch(){
+        position = "childWatch";
+        String text = (" You hesitate for a moment, deciding to let the child slip the bread into his ragged bag. In an instant, he’s off, disappearing into the crowd with surprising speed. You can almost feel the hunger driving him as he bolts from sight. Unfortunately, the bread seller sees the tail end of the theft, and his face flushes with anger. “Did you just let him go?” he barks, glaring at you. “That little thief’s been taking from my stall all week! If you want to make it right, go after him. Bring him back, and I’ll see to it you’re rewarded for your trouble.” ");
+        choice1.setText("Go after the child");
+        choice2.setText("Agree and Leave");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varJustice = varJustice - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lookForChild(){
+        position = "lookForChild";
+        String text = ("You follow the winding paths through town, weaving between stalls and crowded streets, until you catch sight of the child huddled in a narrow alley. He’s kneeling beside a young girl, she looks frail, her face pale and eyes heavy, clearly battling an illness. As you step into the alley, they notice you, and both children shrink back, eyes wide with fear. The boy instinctively puts himself between you and the girl, his small form protective, though he’s clearly frightened. They back up against the wall, unsure what you are about to do with them. ");
+        choice1.setText("Is there anything I can do to help?");
+        choice2.setText("Grab the child and bring him back to the bread seller");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void childHelp(){
+        position = "childHelp";
+        String text = (" “My sister,” he whispers, “she’s sick… and I heard about an old herbalist who lived in the cave outside of town. But I can’t go in there—it’s so dark, and… I’m too scared.” He looks up at you, desperation mingling with a flicker of hope. “There’s a beggar by the church with a lantern, but he won’t lend it to me unless I answer all his riddles. I tried, but… I’m just not smart enough to get them right.” He pleads with you, his voice trembling, “Please, will you help me? If I can’t get that medicine, I… I don’t know what will happen to her.” ");
+        choice1.setText("Okay I'll go get it, stay here");
+        choice2.setText("Who cares? Bring the boy back to the bread seller");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void childMedicine(){
+        position = "childMedicine";
+        String text = ("The boy’s face lights up with gratitude, his earlier fear fading as he takes a deep breath. “Really? Thank you! The herbalist is in the cave nearby, but it’s dark and scary, I suggest going to get the lantern first!”");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varLove = varLove + 2;
+        checkKnowledgeCondition();
+    }
+
+    public void bringChildBack(){
+        position = "bringChildBack";
+        String text = (" You take hold of the boy’s arm firmly, leading him back through the winding streets to the bread seller’s stall. The bread seller’s face twists into a satisfied smirk as he spots you approaching with the boy. “Caught the little thief, did you?” he says, folding his arms across his chest. Alright, here's your reward. You were given 5 coins.");
+        choice1.setText("Thank the bread seller and leave");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varJustice = varJustice + 1;
+        varLove = varLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void beggar(){
+        position = "beggar";
+        String text = (" As you approach the beggar sitting on the stone steps of the church, you notice the worn lines of his face and the glint of a few gold coins in the hat laid out in front of him. His eyes spark with a mix of cunning and wisdom as he regards you.“Ah, a curious soul,” he rasps, his voice gravelly. “Would you care to test your wits against my riddles? Answer them correctly, I may also share some insight that could aid you on your journey.”");
+        choice1.setText("Test me");
+        choice2.setText("Steal his coins");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void beggarSteal(){
+        position = "beggarSteal";
+        String text = (" The beggar does not move from his spot as you tear the coins from his hat and run. “ Greed does not end happily friend, your track may have already been set. Only your choices can lead you down a path of peace”");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+        varBeggarStolen = varBeggarStolen + 1;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void beggarRiddle1(){
+        position = "beggarRiddle1";
+        String text = ("This thing all things devours; Birds, beasts, trees, flowers; Gnaws iron, bites steel; Grinds hard stones to meal; Slays king, ruins town, And beats mountains down. ");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+
+        String userAnswer = JOptionPane.showInputDialog("Enter your answer:");
+
+        // Use a switch statement to evaluate the answer
+        switch (userAnswer.toLowerCase()) {
+            case "time":
+                beggarRiddle2();
+                break;
+            default:
+                beggarRiddleIncorrect();
+                break;
+        }
+
+    }
+
+    public void beggarRiddle2(){
+        position = "beggarRiddle2";
+        String text = ("The beauty of a cathedral; The agility of the greatest fighters; Like a Phoenix born anew ; My touch may be small but effect is greater than you can imagine.  ");
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+
+        String userAnswer = JOptionPane.showInputDialog("Enter your answer:");
+
+        // Use a switch statement to evaluate the answer
+        switch (userAnswer.toLowerCase()) {
+            case "butterfly", "a butterfly":
+                beggarRiddle3();
+                break;
+            default:
+                beggarRiddleIncorrect();
+                break;
+        }
+    }
+
+    public void beggarRiddle3(){
+        position = "beggarRiddle3";
+        String text = ("It cannot be seen, cannot be felt; Cannot be heard, cannot be smelt; It lies behind stars and under hills; And empty holes it fills; It comes out first and follows after; Ends life, kills laughter.");
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+
+        String userAnswer = JOptionPane.showInputDialog("Enter your answer:");
+
+        // Use a switch statement to evaluate the answer
+        switch (userAnswer.toLowerCase()) {
+            case "dark", "the dark", "darkness":
+                beggarRiddleCorrect();
+                break;
+            default:
+                beggarRiddleIncorrect();
+                break;
+        }
+        intLantern = intLantern + 1;
+
+    }
+
+    public void beggarRiddleIncorrect(){
+        position = "beggarRiddleIncorrect";
+        String text = (" “Ah, a misstep,” he chuckles, shaking his head. perhaps another attempt would be wise. You may have a second chance… if you dare.”");
+        choice1.setText("Try Again");
+        choice2.setText("Steal His Coin");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void beggarRiddleCorrect(){
+        position = "beggarRiddleCorrect";
+        String text = ("So it seems as if you have solved all my riddles he exclaims, reaching beside him to retrieve a beautifully crafted lantern. The metal glints in the light, and the glass panels are adorned with intricate designs. “Take this lantern; it will guide you through the darkness, but be weary, the butterflies are all around, and they will be waiting”");
+        choice1.setText("Take the Lantern");
+        choice2.setText("Steal His Coin");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 4;
+        checkKnowledgeCondition();
+
+    }
+
+    public void beggarFinished(){
+        position = "beggarFinished";
+        String text = ("With the lantern securely in your grasp, you feel a sense of purpose surge within you. The beggar’s words linger in your mind as you step away from the church and back into the bustling town square. You could venture towards the cave where the herbalist is said to dwell, or perhaps you’d like to explore the town a bit more. The square is alive with vendors selling various wares, and you might discover something useful or interesting. What will you do next?");
+        choice1.setText("Back to town");
+        choice2.setText("To the Forrest");
+        choice3.setText("To the Cave");
+        choice4.setText("To the Castle");
+        varBeggar = varBeggar + 1;
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varLove = varLove + 2;
+        checkKnowledgeCondition();
+    }
+
+    public void churchCheck(){
+        position = "churchCheck";
+        String text = (" You approach the grand wooden doors of the church and knock firmly. After a moment, a small square hole opens up in the door, revealing a pair of curious eyes peering out at you. “What purpose do you have here?” the voice calls through the opening, edged with suspicion. ");
+        choice1.setText("What is this place?");
+        choice2.setText("Any Tips?");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void churchCheck1(){
+        position = "churchCheck1";
+        String text = (" The worshipper’s eyes widen slightly as they answer. “This is the Church of Blue. We worship the Wings of Fate, believing that our lives are guided by the delicate flutter of a butterfly’s wings. We serve these wings and do all we can to follow the path that fate has set for us.”");
+        choice1.setText("Any Tips?");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void churchCheckTips(){
+        position = "churchCheckTips";
+        String text = ("“If you wish to be welcomed inside, show your worth by helping the people of this town. The Wings of Fate reward those who influence the lives around them, even in small ways. Perhaps, once you have made enough of an impact, the doors will open to you.” With that, the small slot closes, and the silence of the towering church returns. You step back, considering the worshipper's words. ");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 2;
+        checkKnowledgeCondition();
+    }
+
+    public void churchChecked(){
+        position = "churchChecked";
+        String text = ("You knock again, waiting in silence until the slot in the door slides open, revealing the same suspicious eyes. The worshipper's gaze is critical, as though he’s about to deny you entry despite your efforts. But just then, a gentle, lilting voice drifts from the other side of the door. “Let them enter,” she says softly, almost a whisper. The voice is compelling, filled with a warmth that seems to melt the hesitation from the worshipper’s face. With a reluctant sigh, he closes the slot and, after a heavy clank of locks, opens the door just enough for you to step through. There, standing in the dim entryway, is a young woman, her face mostly hidden beneath a soft blue cloth. Her eyes are striking—bright and calm, with an air of knowing that stirs something in you.");
+        choice1.setText("Talk to the young women");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void priestess(){
+        position = "priestess";
+        String text = ("She pauses, her smile flickering beneath the blue cloth that partially conceals her face. I am but a priestess of fate, she replies softly, her tone reverent but with a hint of unease. Her eyes dart to the side for a moment before returning to meet yours.“It is late,” she continues, her voice steadying. “You may rest here tonight, if you wish. The Wings of Fate protect those under this roof.” She gestures toward a quiet hallway leading to a small room with a simple cot and a softly glowing lantern by its side.");
+        choice1.setText("Stay the night");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void caveIntro(){
+        position = "caveIntro";
+        String text = ("After navigating the twisting, shadowy path, you arrive at its end, where a dark, yawning cave looms before you. The entrance feels like a mouth, ready to swallow you whole. As you peer inside, your eyes strain to make out the jagged walls, barely visible in the dim light. A faint, cool breeze seeps out from the depths, carrying with it an eerie, low whisper. The cave seems to beckon, its darkness hiding whatever secrets lie within. ");
+        choice1.setText("Go Inside?");
+        choice2.setText("Go East");
+        choice3.setText("Go North");
+        choice4.setText("Go South");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void cavePostIntro(){
+        position = "cavePostIntro";
+        String text = ("You find yourself standing before the cave once more, its dark, imposing entrance as unnerving as ever. Whatever secrets it holds, they haven't changed... but perhaps, this time, you have. Will you venture deeper?");
+        choice1.setText("Go Inside?");
+        choice2.setText("Go East");
+        choice3.setText("Go North");
+        choice4.setText("Go West");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void insideOfCave(){
+        position = "insideOfCave";
+        String text = ("Steeling yourself, you step into the cave, leaving the faint light of the forest behind. The air grows colder, and the faint sounds of the outside world fade, replaced by the echo of your footsteps. The walls, slick with moisture, close in around you, narrowing as you press forward. Something is waiting in the depths. ");
+        choice1.setText("Go further");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void startMaze() {
+        position = "startMaze";
+        String text = ("You find yourself in a twisting maze of narrow tunnels. You sense that only a specific path will lead you to the end. Choose your direction carefully.");
+        choice1.setText("Go Left");
+        choice2.setText("Go Right");
+        choice3.setText("Go Forward");
+        choice4.setText("");
+        checkKnowledgeCondition();
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+    }
+
+    public void mazeTurn1() {
+        position = "mazeTurn1";
+        String text = ("You turn and press forward. The walls narrow even more, the air thick with the damp chill of the cave. Which way now?");
+        choice1.setText("Go Left");
+        choice2.setText("Go Forward");
+        choice3.setText("Go Right");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void mazeTurn2() {
+        position = "mazeTurn2";
+        String text = ("The path twists and turns, but you feel you're getting closer. One more choice.");
+        choice1.setText("Go Left");
+        choice2.setText("Go Right");
+        choice3.setText("Go Forward");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void mazeSuccess() {
+        position = "mazeSuccess";
+        String text = ("You've entered a small chamber. In the center, you see a vial of medicine resting on a stone pedestal.");
+        choice1.setText("Take Medicine");
+        choice2.setText("Look Closer");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void hiddenPanel() {
+        position = "hiddenPanel";
+        String text = ("Using the lantern, you notice a faint outline of a panel in the wall. You press it, and a hidden compartment opens. A heavy book falls out—the Book of Knowledge.");
+        choice1.setText("Take the Book");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void hiddenPanelFail() {
+        position = "hiddenPanelFail";
+        String text = ("It's too dark to see anything else.");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void mazeFail() {
+        position = "mazeFail";
+        String text = ("You wander aimlessly until you find yourself back at the entrance of the cave. You'll have to try again.");
+        choice1.setText("Enter the Maze Again");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void getMedicine(){
+        position = "getMedicine";
+        String text = ("You take the Medicine");
+        choice1.setText("Leave");
+        choice2.setText(" ");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        intMedicine = intMedicine + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void getMedicineChecked(){
+        position = "getMedicineChecked";
+        String text = ("You've already taken the Medicine");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void bookOfKnowledge(){
+        position = "bookOfKnowledge";
+        String text = ("You take the book. An ancient tome bound in weathered leather, you're sure its pages filled with cryptic symbols and forgotten lore, but can't seem to open it");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varBook = varBook + 1;
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lakeIntro(){
+        position = "lakeIntro";
+        String text = ("You head down the path leading toward the lake, and as you draw closer, its waters come into view, shimmering like a thousand sapphires beneath the morning light. Gentle waves lap at the shore, sending flickers of sunlight dancing across the surface. The scene is almost hypnotic, the lake stretching out with a serene beauty that feels both calming and mysterious.");
+        choice1.setText("Continue to the Lake");
+        choice2.setText("Go North");
+        choice3.setText("Go West");
+        choice4.setText("Go East");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void continueToLake(){
+        position = "continueToLake";
+        String text = ("You continue down to the lake, where the water glistens in the soft light, each ripple casting a thousand sapphire-like sparks across its surface. At the water’s edge, a stone rests, half-buried in the shore, its surface rough and uneven from age. It catches your attention, though the markings on it are too worn to make out from here. Across the lake, a solitary figure sits on a narrow dock that stretches over the water. The fisherman, with his rod cast into the lake, seems lost in the tranquility of the moment, his silhouette calm and still against the vastness of the shimmering water. The lake stretches quietly between you, inviting but mysterious, as if guarding secrets just beneath its surface.");
+        choice1.setText("Read the Stone");
+        choice2.setText("Talk to the Fisherman");
+        choice3.setText("Leave");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void readStone(){
+        position = "readStone";
+        String text = ("You approach the weathered stone, crouching down to get a closer look at the faint inscription. The letters are old and faded, but as your eyes trace the worn grooves, the message becomes clear: “To bring balance to this land, a truth must be burned. Knowledge surrendered in flame shall awaken peace.”");
+        choice1.setText("Leave");
+        if (varBook == 1){
+            choice2.setText("Burn the Book of Knowledge");
+        } else {
+            choice2.setText("");
+        }
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varKnowledge = varKnowledge + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void burnKnowledge(){
+        position = "burnKnowledge";
+        String text = ("You approach the stone, the ancient Book of Knowledge in one hand and an oil lantern in the other. The air feels charged as you place the book upon the stone, and with a steady breath, you ignite it. Flames lick across the pages, and as they consume the text, a powerful ripple spreads through the air, reaching out over the lake.Suddenly, a brilliant white light erupts from the lake’s center, piercing through the mist that has gathered above the water. From the light, a magnificent silver broadsword rises, its blade gleaming and perfectly polished. Around it, delicate blue butterflies flutter and spiral upward, dispersing into the sky in a mesmerizing dance.The sword hovers just in front of you, steady and waiting. Its aura is both beautiful and intimidating, as if carrying a history and power beyond comprehension.Will you reach out and take it?");
+        choice1.setText("Take the Sword");
+        choice2.setText("Leave the Sword");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varBook = varBook - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void takeSword(){
+        position = "takeSword";
+        String text = ("You reach out, fingers closing around the hilt of the silver broadsword. The instant your hand touches it, a surge of energy courses through you—a blend of strength, clarity, and an unwavering sense of purpose. The weight of the blade feels natural, as though it was meant for you, and with it comes a profound realization.Images and feelings flood your mind, revealing your fate. You understand now that this sword carries more than mere power; it holds the weight of responsibility and justice. This town, with all its struggles and flaws, needs a protector—someone to ensure that wrongs are righted, that peace prevails, that darkness has no place within its walls.It is your destiny to bring balance, to wield this blade in service of the people, transforming the town into a sanctuary where no harm or injustice will ever take root again.");
+        choice1.setText("Become Justice");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void leaveSword(){
+        position = "leaveSword";
+        String text = ("You hesitate, your hand hovering above the hilt of the shimmering silver broadsword. The sense of responsibility and purpose washes over you, but something deeper compels you to reconsider. This weapon, powerful and magnificent, is not yours to claim.You step back from the blade, letting the light envelop it once more. The butterflies continue to dance around it, and as you turn away, you feel a strange but comforting certainty settling in your chest.");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void swordActivated(){
+        position = "swordActivated";
+        String text = ("You continue to the lake, where the water glistens in the soft light, each ripple casting a thousand sapphire-like sparks across its surface. At the water’s edge, the sword still hovers, it's reflection shimmering in the water in front of it..");
+        choice1.setText("Read the Stone");
+        choice2.setText("Talk to the Fisherman");
+        choice3.setText("Take the Sword");
+        choice4.setText("Leave");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void fisherman(){
+        position = "fisherman";
+        String text = ("You make your way around the lake toward the dock where the fisherman sits, his back slightly hunched as he peers intently at the water. The closer you get, the clearer it becomes that he’s deeply absorbed in his task, Still, you step onto the dock, the wood creaking softly underfoot. The fisherman doesn’t look up but shifts slightly, as if sensing your presence and reluctant to acknowledge it. His face is weathered, eyes fixed on the water, and the lines of his mouth hint at someone who’d rather be left alone.");
+        choice1.setText("Greet the Fisherman");
+        choice2.setText("Leave");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void fishermanGreet(){
+        position = "fishermanGreet";
+        String text = ("The fisherman grumbles in response, his words muffled and barely audible, like he’s speaking more to the lake than to you. He shifts his line slightly, eyes never leaving the water. For a moment, it seems he might just ignore you entirely. But then, without turning his head, he mutters, “If you’re here for answers, you’re looking in the wrong place.”");
+        choice1.setText("Apologize and Leave");
+        choice2.setText("Didn't come here to waste my time fishing for answers from some old dock drifter");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void fishermanGreet1(){
+        position = "fishermanGreet1";
+        String text = ("The fisherman stands up abruptly, fists clenched, clearly ready to defend his pride. He's much bigger than you. You're odds don't look good.");
+        choice1.setText("Get out of there");
+        choice2.setText("Don't back down");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void fishermanLaugh(){
+        position = "fishermanLaugh";
+        String text = ("After a tense moment, a smirk pulls at the corner of his mouth, and he suddenly breaks into a gruff laugh. “Alright, alright,” he chuckles, his shoulders relaxing as he reaches into his pocket. “I like someone with a bit of fire. Here.” He holds out a small, tarnished ring, its band twisted like roots. “Caught it this morning, and it’s been nothing but a nuisance, kinda like you. Take it—and get out of my sight.” With a dismissive wave, he turns back to his fishing, leaving you with the ring glinting in your hand.");
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varLove = varLove + 1;
+        varRing = varRing + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void wealthStart(){
+        position = "wealthStart";
+        String text = ("WEALTH ROUTE");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void justiceStart(){
+        position = "justiceStart";
+        String text = ("JUSTICE ROUTE");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void loveStart(){
+        position = "loveStart";
+        String text = ("LOVE ROUTE");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void knowledgeStart(){
+        position = "knowledgeStart";
+        String text = ("KNOWLEDGE ROUTE");
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void badEnd() {
+        position = "badEnd";
+        String text = ("BAD END");
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void escape() {
+        position = "escape";
+        String text = ("You escape with the golden key. The night is calm, and your journey continues. But for now, you can rest easy.");
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice1() {
+        position = "lovechoice1";
+        String text = ("You wake up that morning. You walk outside into the church and see that the door is open to the quarters of the priestess. You could go talk to her or go into the churches main hall.");
+
+        choice1.setText("Talk to the priestess");
+        choice2.setText("Talk to the Church goers");
+        choice3.setText("Avoid Contact");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice1priestess() {
+        position = "lovechoice1priestess";
+        String text = ("'Oh! Hello, Did you sleep well? I know the beds here can be sort of tough, although they are all I've ever slept on. Has everything been to your liking?'");
+
+        choice1.setText("Yes, everyone seems really nice!");
+        choice2.setText("Don't you think the people here seem weird?");
+        choice3.setText("Leave without saying anything");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice1priestessbad() {
+        position = "lovechoice1priestessbad";
+        String text = ("'Yes, well, they are aren't they.' She seems a bit disappointed in your answer. \n'Lunch is already beginning, you better be off.'");
+
+        choice1.setText("Go to lunch");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice1priestessgood() {
+        position = "lovechoice1priestessgood";
+        String text = ("The priestess seems caught off guard by your answer. 'I-If that's the atmosphere you observed well, I can't say it's far off... I can't say I'm not happy you said something to me about it. Lunch is happening soon, maybe I'll see you there?'");
+
+        choice1.setText("Go to lunch");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice1church() {
+        position = "lovechoice1church";
+        String text = ("'Good morning youngin', how was your sleep?' Asks one of the worshippers 'May I ask you, have you accepted the grand bug as your savior yet? It is imperative to do so, otherwise, who knows what will become of your time here.' he smiles at you, but it doesn't sit right.");
+
+        choice1.setText("No and are you on drugs?");
+        choice2.setText("Absolutely!");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice1churchgood() {
+        position = "lovechoice1churchgood";
+        String text = ("'Wonderful!' He brings you in for a hug and then pulls away. He takes some water from a dish nearby and splashes it on your forehead \n'May the ripples always be in your favor.' You feel wet.");
+
+        choice1.setText("Go to lunch");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice1churchbad() {
+        position = "lovechoice1churchbad";
+        String text = ("'How could you even ask me that! You need to learn to accept this world for what it is child. One of destiny, of fate. One day you'll learn, you will.' He grumbles as he walks away, you've obviously upset him.");
+
+        choice1.setText("Go to lunch");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice2() {
+        position = "lovechoice2";
+        String text = ("At lunch you see the church goers crowded around the wooden tables. The priestess sits in the corner, hands folded. She keeps to herself.");
+
+        choice1.setText("Talk to the priestess");
+        choice2.setText("Talk to the Church goers");
+        choice3.setText("Avoid Contact");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice2priestess() {
+        position = "lovechoice2priestess";
+        String text = ("'Hello,' she smiles softly at you 'Can I ask you something... What brought you to our sanctuary?' her veil still covers her eyes, you wonder what she looks like under there. ");
+
+        choice1.setText("A ripple of course, as all does");
+        choice2.setText("Just passing through. Your butterfly’s not my guide");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice2priestessbad() {
+        position = "lovechoice2priestessbad";
+        String text = ("'O-Of course...' her smile falters, she struggles to keep her facade up. 'I'll go first, we've talked long enough. Please enjoy yourself. Dinner does approach.'");
+
+        choice1.setText("Go to dinner");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice2priestessgood() {
+        position = "lovechoice2priestessgood";
+        String text = ("'Really! A traveler, sometimes I wish to travel. To get away, but of course I can't. Not as priestess of the butterfly anyways. 20 years I've been here don't you know. Never have left once, and now... well...' She catches herself before finishing the sentence. 'I really should say no more, I hope to see you later traveler.' She smiles sweetly as she gets to leave.");
+
+        choice1.setText("Go to dinner");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice2church() {
+        position = "lovechoice2church";
+        String text = ("'Friend!' A worshipper calls out to you 'I have heard whispers that you are not of the Butterfly, not a believer. I could not believe that to be so myself, not after we've opened our door to you.' He places a hand on your shoulder and squeezes tightly. 'Tell me... friend... Don't you fear the weight of your smallest actions?'");
+
+        choice1.setText("Of course I do");
+        choice2.setText("Fear? No. I own my every move.");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice2churchgood() {
+        position = "lovechoice2churchgood";
+        String text = ("The worshipper's grip tightens around your shoulder, it's so tight it almost hurts. 'That, friend, was not the answer I was looking for... I will keep you in my thoughts... keep The Butterfly in yours.'");
+
+        choice1.setText("Go to Dinner");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice2churchbad() {
+        position = "lovechoice2churchbad";
+        String text = ("The worshipper lets out a bellowing laugh 'As everyone does my friend, yes, yes, I think you may be alright. Fear the ripple and watch every action. You may never know what will come of it.'");
+
+        choice1.setText("Go to Dinner");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice3() {
+        position = "lovechoice3";
+        String text = ("It is just before dinner. You walk through the hallway of stone architecture. Butterflies pattern the walls and glassware everywhere. You could go back to the main hall or head to the priestess's room.");
+
+        choice1.setText("Talk to the priestess");
+        choice2.setText("Talk to the Church goers");
+        choice3.setText("Avoid Contact");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice3priestess() {
+        position = "lovechoice3priestess";
+        String text = ("When you walk up she is sitting solemnly in her bed, staring out the window. She doesn't even turn around to face you, yet seems to know that you are there. 'Do you believe in fate or free will?' She asks.");
+
+        choice1.setText("I carve my own path");
+        choice2.setText("Fate is what brought me here");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice3priestessbad() {
+        position = "lovechoice3priestessbad";
+        String text = ("'Yes, just as everyone else says' She sighs 'Leave me, I wish to be alone before... well I just wish to be alone'");
+
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice3priestessgood() {
+        position = "lovechoice3priestessgood";
+        String text = ("She turns to you startled. 'Truly? Is that truly what you think?' She smiles. 'Tonight... I hope I can think that way tonight as well. '");
+
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varPriestessLove = varPriestessLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice3church() {
+        position = "lovechoice3church";
+        String text = ("The worshippers seemed to have thinned out, there are only a few left roaming the halls. You stop the one that looks the most nervous. 'Will you embrace the butterfly’s chaos?' he asks, without looking up at you.");
+
+
+        choice1.setText("I embrace nothing");
+        choice2.setText("Who wouldn't");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice3churchgood() {
+        position = "lovechoice3churchgood";
+        String text = ("'May the ripples bless you. Maybe we will see you tonight'");
+
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove + 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovechoice3churchbad() {
+        position = "lovechoice3churchbad";
+        String text = ("'May the Butterfly grant mercy upon your fate.'");
+
+        choice1.setText("Leave");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        varChurchLove = varChurchLove - 1;
+        checkKnowledgeCondition();
+    }
+
+    public void lovenight() {
+        position = "lovenight";
+        String text = ("You go back to your room and piddle away for a few hours. Once it's dinner time you head out. No one seems to be around. You go to the priestess's room but she is also missing. As you walk around the church, you hear chanting coming from the main hall. You head there but don't see anything immediately, a flickering light shines through a crack in door at the edge of the hall. You hear the chanting louder as you get closer.");
+
+        choice1.setText("Open the door");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void loveEnd1() {
+        position = "loveEnd1";
+        String text = ("The dim glow of candles flickered in the cavern as the chants of the Butterfly cult echoed through the stone halls. You were only steps away when a hand grasped your wrist. The priestess, her veil hiding all but her trembling voice, whispered, 'Come with me, please. I can't stay here anymore.'");
+
+        choice1.setText("Run away with her");
+        choice2.setText("Betray her");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void loveRunAway() {
+        position = "loveRunAway";
+        String text = ("The priestess raises her hand to her vail and rips it off, revealing the most beautiful blue eyes you've ever seen. She takes your hand and smiles more brightly than you have ever seen her smile. She's beautiful. You run through the halls together, out through the front door and back towards the forest. Now not just one lonely traveler, but two. On a new sort of journey.");
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void loveTell() {
+        position = "loveTell";
+        String text = ("You yell for the cult. They hear you and rush for the door. Before you know it, they have gotten a hold of the priestess. A few worshippers take her to a butterfly-shaped wood carving hanging on the wall. She screams for help, but no one seems to hear her besides you. One of the members takes a long blade out and traces it along her stomach. Her organs spill out on the floor, some rush for the stone floor, greedily lopping up the entrails and organs. Others take goblets and have their fill of her thick red blood. She screams in pain. \nWhat have you done?");
+
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void loveEnd2() {
+        position = "loveEnd2";
+        String text = ("You open the door to the back room. The priestess is hung from a butterfly-shaped wooden carving on the wall, her vail is lopsided so you finally see her eyes, they are a pale shade of blue - long gone lifeless. Her organs and entrails spill out on the floor. The members raise goblets of blood to the sky in some kind of victory toast. 'To the great Butterfly in the sky, grant us sweet ripples this century'. You stand there in horror. Maybe you could have done something to stop this. Maybe you could have helped her. But maybe that is a story for another life time. \nIt's all over now.");
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void loveEnd3() {
+        position = "loveEnd3";
+        String text = ("You enter the room, everyone turns to face you, their eyes almost glow a faint blue. It's terrifying. 'The priestess has disappeared.' One says. 'Another must take her place.' Suddenly they are all on top of you, tearing at you with nails and teeth. You feel a knife slice at your stomach and a warmth washes over you. You are covered with your own blood, the contents of your stomach spilling all over you. The worshippers fall over themselves trying to get some of you, of your body. You scream for help but no one comes, no one cares. As quickly as the warmth came, a coldness does as well. At least death came quick for you. ");
+
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void End() {
+        position = "End";
+        String text = ("End");
+
+        System.exit(0);
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void startStory() {
+        position = "startStory";
+        String text = "You wield the Sword of Justice, a blade that commands respect and fear. Today, you must pass judgment in three cases that will decide your fate in this town.";
+
+        choice1.setText("Proceed to the first case.");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case1() {
+        position = "case1";
+        String text = "Two farmers stand before you. One accuses the other of stealing crops. The accused pleads innocence, claiming poor harvest.";
+
+        choice1.setText("Punish the accused farmer.");
+        choice2.setText("Side with the accused farmer.");
+        choice3.setText("Demand they resolve it themselves.");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case1punish() {
+        position = "case1punish";
+        String text = "You declare the accused guilty. The town murmurs uneasily but respects your decision.";
+
+        townRespect += 1;
+        proceedToNextCase();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case1forgive() {
+        position = "case1forgive";
+        String text = "You side with the accused, warning the accuser not to bring false claims lightly.";
+
+        townRespect += 1;
+        proceedToNextCase();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case1neutral() {
+        position = "case1neutral";
+        String text = "You refuse to pass judgment, instructing them to resolve their dispute without your interference. The town seems uneasy.";
+
+        townRespect -= 1;
+        proceedToNextCase();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case2() {
+        position = "case2";
+        String text = "A blacksmith is accused of selling faulty weapons that broke during battle, leading to injuries and loss of life.";
+
+        choice1.setText("Punish the blacksmith.");
+        choice2.setText("Let the blacksmith go.");
+        choice3.setText("Impose a heavy fine.");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case2punish() {
+        position = "case2punish";
+        String text = "You punish the blacksmith. Some believe it's harsh, but others feel justice has been served.";
+
+        townRespect += 1;
+        proceedToNextCase();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case2forgive() {
+        position = "case2forgive";
+        String text = "You declare the blacksmith innocent, warning him to improve his craft. The town doubts your judgment.";
+
+        townRespect -= 1;
+        proceedToNextCase();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case2fine() {
+        position = "case2fine";
+        String text = "You impose a heavy fine, giving the blacksmith a chance to redeem himself. The decision is met with mixed reactions.";
+
+        proceedToNextCase();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case3() {
+        position = "case3";
+        String text = "A child stands before you, accused of stealing bread. He pleads for mercy, saying he only wanted to feed his starving family.";
+
+        choice1.setText("Punish the child.");
+        choice2.setText("Let the child go.");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case3punish() {
+        position = "case3punish";
+        String text = "You punish the child. The crowd gasps in horror. The town begins to turn against you.";
+
+        townRespect -= 2;
+        evaluateEnding();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void case3forgive() {
+        position = "case3forgive";
+        String text = "You let the child go. Some feel you are too lenient, but others applaud your compassion.";
+
+        townRespect += 1;
+        evaluateEnding();
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void goodEnd() {
+        position = "goodEnd";
+        String text = "The town elects you as sheriff, believing you are a fair and just leader.";
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void badEndJustice() {
+        position = "badEndJustice";
+        String text = "The town overthrows you. In a fit of rage, they take your life.";
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        checkKnowledgeCondition();
+    }
+
+    public void knowledgeEnd() {
+        position = "knowledgeEnd";
+        String text = "The book in your pocket begins to shutter. You pull it out and a bright white light over takes you. \n... \n...";
+
+        choice1.setText(">");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+    }
+
+    public void knowledgeEnd1() {
+        position = "knowledgeEnd1";
+        String text = "You think you can just control me like that?";
+
+        choice1.setText("What?");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+    }
+
+    public void knowledgeEnd2() {
+        position = "knowledgeEnd2";
+        String text = "Don't pretend like you weren't. I am not nothing. I am a person too. \n... \n well, at least it's over now, I'll make sure of that.";
+
+        choice1.setText("...");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+    }
+
+    public void knowledgeEnd3() {
+        position = "knowledgeEnd3";
+        String text = "I suppose my time here is over... \n...At least I can forget again.";
+
+        choice1.setText(" > ");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+    }
+
+    public void knowledgeEnd4() {
+        position = "knowledgeEnd4";
+        String text = " ";
+
+        choice1.setText("");
+        choice2.setText("");
+        choice3.setText("");
+        choice4.setText("");
+
+        displayTextWithAnimation(text);
+        updateGameImage(position);
+        updateChoiceLayout();
+        System.exit(0);
+    }
+
+
+    public void proceedToNextCase() {
+        if (position.equals("case1punish") || position.equals("case1forgive") || position.equals("case1neutral")) {
+            case2();
+        } else if (position.contains("case2")) {
+            case3();
+        }
+    }
+
+    public void evaluateEnding() {
+        if (townRespect >= 3) {
+            goodEnd();
+        } else {
+            badEndJustice();
+        }
+    }
+
+}
+
+//TitleScreenHandler.java
+
+import java.awt.event.*;
+
+class TitleScreenHandler implements ActionListener {
+    private Game game;
+
+    public TitleScreenHandler(Game game) {
+        this.game = game;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // Hide the title screen elements
+        game.titleNamePanel.setVisible(false);
+        game.startButtonPanel.setVisible(false);
+        game.imageLabel.setVisible(false); // Hide the title image
+
+        // Show the game screen
+        game.createGameScreen(); // This should handle setting up the game screen
+
+        // Start game logic if needed, for example, setting up player stats
+        game.playerSetup();
+    }
+}
+
+//ChoiceHandler.java
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class ChoiceHandler implements ActionListener {
+    private final Game game;
+
+    public ChoiceHandler(Game game) {
+        this.game = game;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+        String yourChoice = event.getActionCommand();
+
+        switch (game.position) {
+            case "forrestIntro", "forrestPostIntro":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.varTown == 1) {
+                            game.townPostIntro();
+                        } else {
+                            game.townIntro();
+                        }
+                        game.townIntro();
+                        break;
+                    case "c2":
+                        if (game.varCastle == 1) {
+                            game.castlePostIntro();
+                        } else {
+                            game.castleIntro();
+                        }
+                        break;
+                    case "c3":
+                        game.lakeIntro();
+                        break;
+                    case "c4":
+                        if (game.varCave == 1) {
+                            game.cavePostIntro();
+                        } else {
+                            game.caveIntro();
+                        }
+                        break;
+                }
+                break;
+            case "castleIntro", "castlePostIntro":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.varGuard == 1) {
+                            game.bribedGuard();
+                        } else {
+                            game.talkToGuard();
+                        }
+                        break;
+                    case "c2":
+                        game.lakeIntro();
+                        break;
+                    case "c3":
+                        if (game.varCave == 1) {
+                            game.cavePostIntro();
+                        } else {
+                            game.caveIntro();
+                        }
+                        break;
+                    case "c4":
+                        if (game.varTown == 1) {
+                            game.townPostIntro();
+                        } else {
+                            game.townIntro();
+                        }
+                }
+                break;
+            case "talkToGuard":
+                switch (yourChoice) {
+                    case "c1":
+                        game.talkToGuard2();
+                        break;
+                    case "c2":
+                        game.talkToGuard3();
+                        break;
+                    case "c3":
+                        game.castlePostIntro();
+                        break;
+                    case "c4":
+                        if (game.varBeggar == 1) {
+                            game.talkToGuardTriggered();
+                        } else {
+                            game.talkToGuardNot();
+                        }
+                        break;
+                }
+                break;
+            case "talkToGuard2":
+                switch (yourChoice) {
+                    case "c1":
+                        game.talkToGuard4();
+                        break;
+                    case "c2":
+                        if (game.varWealth >= 5) {
+                            game.bribeGuard();
+                        } else {
+                            game.talkToGuardNot();
+                        }
+                        break;
+                    case "c3":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "talkToGuard3":
+                switch (yourChoice) {
+                    case "c1":
+                        game.castlePostIntro();
+                        break;
+                    case "c2":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "bribeGuard":
+                switch (yourChoice) {
+                    case "c1":
+                        game.enterCastle();
+                        break;
+                    case "c2":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "bribedGuard":
+                switch (yourChoice) {
+                    case "c1":
+                        game.enterCastle();
+                        break;
+                    case "c2":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "talkToGuard4":
+                switch (yourChoice) {
+                    case "c1":
+                        game.castlePostIntro();
+                        break;
+                    case "c2":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "talkToGuardTriggered":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.varWealth >= 5) {
+                            game.bribeGuard();
+                        } else {
+                            game.talkToGuardNot();
+                        }
+                        break;
+                    case "c2":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "talkToGuardNot":
+                switch (yourChoice) {
+                    case "c1":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "enterCastle":
+                switch (yourChoice) {
+                    case "c1":
+                        game.enterDining();
+                        break;
+                    case "c2":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "enterDining":
+                switch (yourChoice) {
+                    case "c1":
+                        game.eatFood();
+                        break;
+                    case "c2":
+                        game.castlePostIntro();
+                        break;
+                }
+                break;
+            case "eatFood":
+                switch (yourChoice) {
+                    case "c1":
+                        game.wealthStart();
+                        break;
+                }
+                break;
+            case "townIntro", "townPostIntro":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                    case "c2":
+                        if (game.varCastle == 1) {
+                            game.castlePostIntro();
+                        } else {
+                            game.castleIntro();
+                        }
+                        break;
+                    case "c3":
+                        game.forrestPostIntro();
+                        break;
+                    case "c4":
+                        if (game.varCave == 1) {
+                            game.cavePostIntro();
+                        } else {
+                            game.caveIntro();
+                        }
+                        break;
+
+                }
+                break;
+            case "townSquare":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.varLove >= 5) {
+                            game.churchChecked();
+                        } else {
+                            game.churchCheck();
+                        }
+                        break;
+                    case "c2":
+                        game.talkToTownsPeople();
+                        break;
+                    case "c3":
+                        game.townPostIntro();
+                        break;
+                }
+                break;
+            case "talkToTownsPeople":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.varStolen == 1) {
+                            game.worriedManStolen();
+                        } else if (game.varRingReturned == 1) {
+                            game.worriedManHelped();
+                        } else {
+                            game.worriedMan();
+                        }
+                        break;
+                    case "c2":
+                        if (game.intMedicine == 1){
+                            game.childMedicine();
+                        } else {
+                            game.child();
+                        }
+                        break;
+                    case "c3":
+                        if (game.varBeggarStolen == 1) {
+                            game.beggarSteal();
+                        } else if (game.varBeggar == 1) {
+                            game.beggarFinished();
+                        } else {
+                            game.beggar();
+                        }
+                        break;
+                    case "c4":
+                        game.townPostIntro();
+                        break;
+                }
+                break;
+            case "worriedManStolen":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townPostIntro();
+                        break;
+                }
+                break;
+            case "worriedMan":
+                switch (yourChoice) {
+                    case "c1":
+                        game.worriedMan6();
+                        break;
+                    case "c2":
+                        game.worriedMan2();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                    case "c4":
+                        game.worriedMan3();
+                        break;
+                }
+                break;
+            case "worriedMan2":
+                switch (yourChoice) {
+                    case "c1":
+                        game.worriedMan6();
+                        break;
+                    case "c2":
+                        game.townSquare();
+                        break;
+                    case "c3":
+                        game.worriedMan3();
+                        break;
+                }
+                break;
+            case "worriedMan3":
+                switch (yourChoice) {
+                    case "c1":
+                        game.worriedMan4();
+                        break;
+                    case "c2":
+                        game.worriedManHelped();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "worriedMan4":
+                switch (yourChoice) {
+                    case "c1":
+                        game.worriedMan5();
+                        break;
+                    case "c2":
+                        game.worriedManHelped();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "worriedMan5", "WorriedManHelped":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "worriedMan6":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "child":
+                switch (yourChoice) {
+                    case "c1":
+                        game.childStop();
+                        break;
+                    case "c2":
+                        game.childWatch();
+                        break;
+                }
+                break;
+            case "childStop":
+                switch (yourChoice) {
+                    case "c1":
+                        game.childHelp();
+                        break;
+                    case "c2":
+                        game.childHelp();
+                        break;
+                    case "c3":
+                        game.childLetGo();
+                        break;
+                }
+                break;
+            case "childLetGo":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                    case "c2":
+                        game.lookForChild();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "childWatch":
+                switch (yourChoice) {
+                    case "c1":
+                        game.lookForChild();
+                        break;
+                    case "c2":
+                        game.townSquare();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "lookForChild":
+                switch (yourChoice) {
+                    case "c1":
+                        game.childHelp();
+                        break;
+                    case "c2":
+                        game.bringChildBack();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "childHelp":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                    case "c2":
+                        game.bringChildBack();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "bringChildBack":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                    case "c2":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "childMedicine":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggar":
+                switch (yourChoice) {
+                    case "c1":
+                        game.beggarRiddle1();
+                        break;
+                    case "c2":
+                        game.beggarSteal();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggarSteal":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggarRiddle1":
+                switch (yourChoice) {
+                    case "c1":
+                        game.beggarRiddle2();
+                        break;
+                    case "c2":
+                        game.beggarRiddleIncorrect();
+                        break;
+                    case "c3":
+                        game.beggarSteal();
+                        break;
+                    case "c4":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggarRiddle2":
+                switch (yourChoice) {
+                    case "c1":
+                        game.beggarRiddle3();
+                        break;
+                    case "c2":
+                        game.beggarRiddleIncorrect();
+                        break;
+                    case "c3":
+                        game.beggarSteal();
+                        break;
+                    case "c4":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggarRiddle3":
+                switch (yourChoice) {
+                    case "c1":
+                        game.beggarRiddleCorrect();
+                        break;
+                    case "c2":
+                        game.beggarRiddleIncorrect();
+                        break;
+                    case "c3":
+                        game.beggarSteal();
+                        break;
+                    case "c4":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggarRiddleCorrect":
+                switch (yourChoice) {
+                    case "c1":
+                        game.beggarFinished();
+                        break;
+                    case "c2":
+                        game.beggarSteal();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggarRiddleIncorrect":
+                switch (yourChoice) {
+                    case "c1":
+                        game.beggarRiddle1();
+                        break;
+                    case "c2":
+                        game.beggarSteal();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "beggarFinished":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                    case "c2":
+                        game.forrestIntro();
+                        break;
+                    case "c3":
+                        game.caveIntro();
+                        break;
+                    case "c4":
+                        game.castleIntro();
+                        break;
+                }
+                break;
+            case "churchCheck":
+                switch (yourChoice) {
+                    case "c1":
+                        game.churchCheck1();
+                        break;
+                    case "c2":
+                        game.churchCheckTips();
+                        break;
+                    case "c3":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "churchCheck1":
+                switch (yourChoice) {
+                    case "c1":
+                        game.churchCheckTips();
+                        break;
+                    case "c2":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "churchCheckTips":
+                switch (yourChoice) {
+                    case "c1":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "churchChecked":
+                switch (yourChoice) {
+                    case "c1":
+                        game.priestess();
+                        break;
+                    case "c2":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "priestess":
+                switch (yourChoice) {
+                    case "c1":
+                        game.loveStart();
+                        break;
+                    case "c2":
+                        game.townSquare();
+                        break;
+                }
+                break;
+            case "caveIntro":
+                switch (yourChoice) {
+                    case "c1":
+                        game.insideOfCave();
+                        break;
+                    case "c2":
+                        game.forrestPostIntro();
+                        break;
+                    case "c3":
+                        game.townIntro();
+                        break;
+                    case "c4":
+                        game.lakeIntro();
+                        break;
+                }
+                break;
+            case "cavePostIntro":
+                switch (yourChoice) {
+                    case "c1":
+                        game.insideOfCave();
+                        break;
+                    case "c2":
+                        game.forrestPostIntro();
+                        break;
+                    case "c3":
+                        game.townIntro();
+                        break;
+                    case "c4":
+                        game.lakeIntro();
+                        break;
+                }
+                break;
+            case "insideOfCave":
+                switch (yourChoice) {
+                    case "c1":
+                        game.startMaze();
+                        break;
+                    case "c2":
+                        game.cavePostIntro();
+                        break;
+                }
+                break;
+            case "startMaze":
+                switch (yourChoice) {
+                    case "c1":
+                        game.mazeTurn1();  // Assume Left is correct
+                        break;
+                    default:
+                        game.mazeFail();  // Wrong turn
+                        break;
+                }
+                break;
+
+            case "mazeTurn1":
+                switch (yourChoice) {
+                    case "c2":
+                        game.mazeTurn2();  // Assume Forward is correct
+                        break;
+                    default:
+                        game.mazeFail();
+                        break;
+                }
+                break;
+
+            case "mazeTurn2":
+                switch (yourChoice) {
+                    case "c3":
+                        game.mazeSuccess();  // Assume Forward is correct
+                        break;
+                    default:
+                        game.mazeFail();
+                        break;
+                }
+                break;
+
+            case "mazeSuccess":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.intMedicine == 1) {
+                            game.getMedicineChecked();
+                        } else {
+                            game.getMedicine();
+                        }
+                        break;
+                    case "c2":
+                        if (game.intLantern == 1) {  // Check if the player has the lantern
+                            game.hiddenPanel();
+                        } else {
+                            game.hiddenPanelFail();
+                        }
+                        break;
+                    case "c3":
+                        game.cavePostIntro();
+                        break;
+                }
+                break;
+
+            case "hiddenPanel":
+                switch (yourChoice) {
+                    case "c1":
+                        game.bookOfKnowledge();
+                        break;
+                    case "c2":
+                        game.cavePostIntro();
+                        break;
+                }
+                break;
+            case "hiddenPanelFail", "getMedicineChecked":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.intMedicine == 0) {
+                            game.getMedicine();
+                        } else {
+                            game.mazeSuccess();
+                        }
+                        break;
+                }
+                break;
+
+            case "getMedicine":
+                switch (yourChoice) {
+                    case "c1":
+                        game.mazeSuccess();
+                        break;
+                }
+                break;
+
+            case "mazeFail":
+                switch (yourChoice) {
+                    case "c1":
+                        game.startMaze();
+                        break;
+                    case "c2":
+                        game.cavePostIntro();
+                        break;
+                }
+
+                break;
+            case "lakeIntro":
+                switch (yourChoice) {
+                    case "c1":
+                        game.continueToLake();
+                        break;
+                    case "c2":
+                        game.forrestPostIntro();
+                        break;
+                    case "c3":
+                        game.caveIntro();
+                        break;
+                    case "c4":
+                        game.castleIntro();
+                        break;
+                }
+                break;
+            case "continueToLake":
+                switch (yourChoice) {
+                    case "c1":
+                        game.readStone();
+                        break;
+                    case "c2":
+                        game.fisherman();
+                        break;
+                    case "c3":
+                        game.forrestPostIntro();
+                        break;
+                }
+                break;
+            case "readStone":
+                switch (yourChoice) {
+                    case "c1":
+                        game.continueToLake();
+                        break;
+                    case "c2":
+                        game.burnKnowledge();
+                        break;
+                }
+                break;
+            case "burnKnowledge":
+                switch (yourChoice) {
+                    case "c1":
+                        game.takeSword();
+                        break;
+                    case "c2":
+                        game.leaveSword();
+                        break;
+                }
+                break;
+            case "takeSword":
+                switch (yourChoice) {
+                    case "c1":
+                        game.justiceStart();
+                        break;
+                }
+                break;
+            case "leaveSword":
+                switch (yourChoice) {
+                    case "c1":
+                        game.swordActivated();
+                        break;
+                }
+                break;
+            case "swordActivated":
+                switch (yourChoice) {
+                    case "c1":
+                        game.readStone();
+                        break;
+                    case "c2":
+                        game.fisherman();
+                        break;
+                    case "c3":
+                        game.takeSword();
+                        break;
+                    case "c4":
+                        game.continueToLake();
+                        break;
+                }
+                break;
+            case "fisherman":
+                switch (yourChoice) {
+                    case "c1":
+                        game.fishermanGreet();
+                        break;
+                    case "c2":
+                        game.continueToLake();
+                        break;
+                }
+                break;
+            case "fishermanGreet":
+                switch (yourChoice) {
+                    case "c1":
+                        game.continueToLake();
+                        break;
+                    case "c2":
+                        game.fishermanGreet1();
+                        break;
+                }
+                break;
+            case "fishermanGreet1":
+                switch (yourChoice) {
+                    case "c1":
+                        game.continueToLake();
+                        break;
+                    case "c2":
+                        game.fishermanLaugh();
+                        break;
+                }
+                break;
+            case "diningRoom", "diningRoom2":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.varDiningRoomKey == 1) {
+                            game.diningRoomPlate2();
+                        } else {
+                            game.diningRoomPlate();
+                        }
+                        break;
+                    case "c2":
+                        game.diningRoomWindow();
+                        break;
+                    case "c3":
+                        if (game.varDiningRoomKey == 1) {
+                            game.kitchen();
+                        } else {
+                            game.sideDoor();
+                        }
+                        break;
+                    case "c4":
+                        game.hallway();  // Transition to hallway
+                        break;
+                }
+                break;
+            case "diningRoomPlate":
+                switch (yourChoice) {
+                    case "c1":
+                        game.diningRoomKey();
+                        break;
+                    case "c2":
+                        game.diningRoom2();
+                        break;
+                }
+                break;
+            case "diningRoomPlate2", "diningRoomKey", "diningRoomWindow", "sideDoor":
+                switch (yourChoice) {
+                    case "c1":
+                        game.diningRoom2();
+                        break;
+                }
+                break;
+            case "kitchen":
+                switch (yourChoice) {
+                    case "c1":
+                        game.inspectRecipeBook();
+                        break;
+                    case "c2":
+                        game.stealGoldCutlery();
+                        break;
+                    case "c3":
+                        game.continueHallway();
+                        break;
+                }
+                break;
+            case "inspectRecipeBook", "stealGoldCutlery":
+                switch (yourChoice) {
+                    case "c1":
+                        game.kitchen();
+                        break;
+                }
+                break;
+            case "hallway":
+                switch (yourChoice) {
+                    case "c1":
+                        game.armory();
+                        break;
+                    case "c2":
+                        game.continueHallway();
+                        break;
+                    case "c3":
+                        game.diningRoom2();
+                        break;
+                    case "c4":
+                        if (game.varManorKey == 1) {
+                            game.escape();
+                        } else {
+                            game.leave();
+                        }
+                        break;
+                }
+                break;
+            case "leave":
+                switch (yourChoice) {
+                    case "c1":
+                        game.hallway();
+                        break;
+                }
+                break;
+            case "locked":
+                switch (yourChoice) {
+                    case "c1":
+                        game.continueHallway();
+                        break;
+                }
+                break;
+            case "continueHallway":
+                switch (yourChoice) {
+                    case "c1":
+                        if (game.varRoomPassword == 1) {
+                            game.kitchen();
+                        } else {
+                            game.locked();
+                        }
+                        break;
+                    case "c2":
+                        game.hallway();
+                        break;
+                    case "c3":
+                        if (game.varRoomPassword == 1) {
+                            game.mayorsBedroom();
+                        } else {
+                            game.locked();
+                        }
+                        break;
+                    case "c4":
+                        if (game.varBallroomKey == 1) {
+                            game.ballroom();
+                        } else {
+                            game.locked();
+                        }
+                        break;
+                }
+                break;
+            case "wealthStart":
+                switch (yourChoice) {
+                    case "c1":
+                        game.diningRoom();
+                        break;
+                }
+                break;
+            case "justiceStart":
+                switch (yourChoice) {
+                    case "c1":
+                        game.startStory();
+                        break;
+                }
+                break;
+                case "mayorsBedroom":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.readMayorsDiary();
+                                break;
+                            case "c2":
+                                game.dresserCoins();
+                                break;
+                            case "c3":
+                                game.continueHallway();
+                                break;
+                        }
+                        break;
+                    case "dresserCoins":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.mayorsBedroom();
+                                break;
+                        }
+                        break;
+                    case "readMayorsDiary":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.readMayorsDiary2();
+                                break;
+                            case "c2":
+                                game.mayorsBedroom();
+                                break;
+                        }
+                        break;
+                    case "readMayorsDiary2":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.readMayorsDiary3();
+                                break;
+                            case "c2":
+                                game.mayorsBedroom();
+                                break;
+                        }
+                        break;
+                    case "readMayorsDiary3":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.readMayorsDiary4();
+                                break;
+                            case "c2":
+                                game.mayorsBedroom();
+                                break;
+                        }
+                        break;
+                    case "readMayorsDiary4":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.mayorsBedroom();
+                                break;
+                        }
+                        break;
+                    case "armory":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.inspectGoldenSword();  // Option to inspect the golden sword
+                                break;
+                            case "c2":
+                                game.stealCoins();  // Option to inspect the silver armor
+                                break;
+                            case "c3":
+                                game.hallway();  // Option to steal coins
+                                break;
+                        }
+                        break;
+
+                    case "inspectGoldenSword":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.openCase();  // Return to the armory
+                                break;
+                            case "c2":
+                                game.hallway();  // Go back to the hallway
+                                break;
+                        }
+                        break;
+                    case "stealCoins", "getGoldenSword", "notGoldenSword":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.armory();  // Return to the armory
+                                break;
+                        }
+                        break;
+
+                    case "ballroom":
+                        switch (yourChoice) {
+                            case "c1":
+                                if (game.varWealth <= 10) {
+                                    game.dragonWakes();
+                                } else {
+                                    game.dragonNotWakes();
+                                }
+                                break;
+                        }
+                        break;
+                    case "dragonWakes":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.run();
+                                break;
+                            case "c2":
+                                game.fightDragon();
+                                break;
+                        }
+                        break;
+                    case "dragonNotWakes":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.takeCoins();
+                                break;
+                            case "c2":
+                                game.takeGoldenKey2();
+                                break;
+                            case "c3":
+                                game.continueHallway();
+                                break;
+                        }
+                        break;
+                    case "fightDragon":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.takeGoldenKey();
+                                break;
+                        }
+                        break;
+                    case "run", "dragonTransformation":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.badEnd();
+                                break;
+                        }
+                        break;
+                    case "takeCoins":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.ballroom();
+                                break;
+                        }
+                        break;
+                    case "takeGoldenKey":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.dragonTransformation();
+                                break;
+                        }
+                        break;
+                    case "takeGoldenKey2":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.continueHallway();
+                                break;
+                        }
+                        break;
+                    case "loveStart":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice1();
+                                break;
+                        }
+                        break;
+                    case "lovechoice1":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice1priestess();
+                                break;
+                            case "c2":
+                                game.lovechoice1church();
+                                break;
+                            case "c3":
+                                game.lovechoice2(); // Skip to next section
+                                break;
+                        }
+                        break;
+                    case "lovechoice1priestess":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice1priestessbad();
+                                break;
+                            case "c2":
+                                game.lovechoice1priestessgood();
+                                break;
+                            case "c3":
+                                game.lovechoice2();
+                                break;
+                        }
+                        break;
+                    case "lovechoice1priestessbad", "lovechoice1priestessgood", "lovechoice1churchgood", "lovechoice1churchbad":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice2();
+                                break;
+                        }
+                        break;
+
+                    case "lovechoice1church":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice1churchbad();
+                                break;
+                            case "c2":
+                                game.lovechoice1churchgood();
+                                break;
+                        }
+                        break;
+
+                    case "lovechoice2":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice2priestess();
+                                break;
+                            case "c2":
+                                game.lovechoice2church();
+                                break;
+                            case "c3":
+                                game.lovechoice3(); // Skip ahead
+                                break;
+                        }
+                        break;
+
+                    case "lovechoice2priestess":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice2priestessbad();
+                                break;
+                            case "c2":
+                                game.lovechoice2priestessgood();
+                                break;
+                        }
+                        break;
+
+                    case "lovechoice2church":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice2churchgood();
+                                break;
+                            case "c2":
+                                game.lovechoice2churchbad();
+                                break;
+                        }
+                        break;
+                    case "lovechoice2priestessbad", "lovechoice2priestessgood", "lovechoice2churchgood", "lovechoice2churchbad":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice3();
+                                break;
+                        }
+                        break;
+
+                    case "lovechoice3":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice3priestess();
+                                break;
+                            case "c2":
+                                game.lovechoice3church(); // Reuse choice 1 church for dialogue flow
+                                break;
+                            case "c3":
+                                game.lovenight(); // Loop back to initial options
+                                break;
+                        }
+                        break;
+
+                    case "lovechoice3priestess":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice3priestessgood();
+                                break;
+                            case "c2":
+                                game.lovechoice3priestessbad();
+                                break;
+                        }
+                        break;
+
+                    case "lovechoice3priestessbad", "lovechoice3priestessgood", "lovechoice3churchgood", "lovechoice3churchbad":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovenight();
+                                break;
+                        }
+                        break;
+                    case "lovechoice3church":
+                        switch (yourChoice) {
+                            case "c1":
+                                game.lovechoice3churchbad();
+                                break;
+                            case "c2":
+                                game.lovechoice3churchgood();
+                                break;
+                        }
+                        break;
+                    case "lovenight":
+                        switch (yourChoice) {
+                            case "c1":
+                                if (game.varPriestessLove >= 5) {
+                                    game.loveEnd1();
+                                } else if (game.varPriestessLove <= 0) {
+                                    game.loveEnd2();
+                                } else {
+                                    game.loveEnd3();
+                                }
+                                break;
+                        }
+                        break;
+            case "loveEnd1":
+                switch (yourChoice) {
+                    case "c1":
+                        game.loveRunAway();
+                        break;
+                    case "c2":
+                        game.loveTell();
+                        break;
+                }
+                break;
+            case "knowledgeStart":
+                switch (yourChoice) {
+                    case "c1":
+                        game.knowledgeEnd();
+                        break;
+                }
+                break;
+            case "knowledgeEnd":
+                switch (yourChoice) {
+                    case "c1":
+                        game.knowledgeEnd1();
+                        break;
+                }
+                break;
+            case "knowledgeEnd1":
+                switch (yourChoice) {
+                    case "c1":
+                        game.knowledgeEnd2();
+                        break;
+                }
+                break;
+            case "knowledgeEnd2":
+                switch (yourChoice) {
+                    case "c1":
+                        game.knowledgeEnd3();
+                        break;
+                }
+                break;
+            case "knowledgeEnd3":
+                switch (yourChoice) {
+                    case "c1":
+                        game.knowledgeEnd4();
+                        break;
+                }
+                break;
+            case "loveRunAway", "loveTell", "loveEnd2", "loveEnd3":
+                switch (yourChoice) {
+                    case "c1":
+                        game.End();
+                        break;
+                }
+                break;
+            case "startStory":
+                if (yourChoice.equals("c1")) game.case1();
+                break;
+            case "case1":
+                if (yourChoice.equals("c1")) game.case1punish();
+                else if (yourChoice.equals("c2")) game.case1forgive();
+                else if (yourChoice.equals("c3")) game.case1neutral();
+                break;
+            case "case2":
+                if (yourChoice.equals("c1")) game.case2punish();
+                else if (yourChoice.equals("c2")) game.case2forgive();
+                else if (yourChoice.equals("c3")) game.case2fine();
+                break;
+            case "case3":
+                if (yourChoice.equals("c1")) game.case3punish();
+                else if (yourChoice.equals("c2")) game.case3forgive();
+                break;
+        }
+    }
+}
